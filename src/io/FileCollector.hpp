@@ -1,4 +1,4 @@
-// Generated from /jLCM/src/main/java/fr/liglab/mining/io/FileCollector.java
+
 
 #pragma once
 
@@ -20,7 +20,7 @@ protected:
     ofstream* stream;	// note: ofstream is internally buffered
 
 public:
-    void collect(int32_t support, vector<uint32_t>* pattern) override;
+    void collect(int32_t support, vector<int32_t>* pattern) override;
     int64_t close() override;
     int32_t getAveragePatternLength() override;
     virtual int64_t getCollected();

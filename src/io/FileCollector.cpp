@@ -26,7 +26,7 @@ FileCollector::~FileCollector() {
 	delete stream;
 }
 
-void FileCollector::collect(int32_t support, vector<uint32_t>* pattern) {
+void FileCollector::collect(int32_t support, vector<int32_t>* pattern) {
 	(*stream) << support << "\t";
 
 	bool addSeparator = false;
