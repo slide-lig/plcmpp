@@ -21,7 +21,7 @@ IndexedTransactionsList::IndexedTransactionsList(
 {
 	_size = other._size;
 	writeIndex = other.writeIndex;
-	_indexAndFreqs = other._indexAndFreqs;
+	_indexAndFreqs = new vector<int32_t>(*(other._indexAndFreqs));
 }
 
 void IndexedTransactionsList::positionIterator(

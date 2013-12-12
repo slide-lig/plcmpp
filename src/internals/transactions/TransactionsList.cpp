@@ -3,7 +3,6 @@
 using namespace std;
 
 #include <internals/transactions/TransactionsList.hpp>
-#include <internals/transactions/IterableTransaction.hpp>
 #include <internals/transactions/ReusableTransactionIterator.hpp>
 #include <internals/transactions/TransactionIterator.hpp>
 #include <internals/transactions/TransactionsWriter.hpp>
@@ -19,11 +18,13 @@ TransactionsList::~TransactionsList() {
 
 void TransactionsList::compress(int32_t prefixEnd) {
 	vector<int32_t> *sortList = new vector<int32_t>(size());
-	vector<int32_t>::iterator idIter = getIdIterator();
-	for (int i = 0; i < sortList->size(); i++) {
-		sortList[i] = (*idIter);
+	unique_ptr<Iterator<int32_t> > idIter = getIdIterator();
+	for (uint32_t i = 0; i < sortList->size(); i++) {
+		(*sortList)[i] = idIter->next();
 	}
-	sort(sortList, 0, sortList->size(), getIterator(), getIterator(), prefixEnd);
+	unique_ptr<ReusableTransactionIterator> it1 = getIterator();
+	unique_ptr<ReusableTransactionIterator> it2 = getIterator();
+	sort(sortList, 0, sortList->size(), it1.get(), it2.get(), prefixEnd);
 }
 
 /**
@@ -40,8 +41,8 @@ void TransactionsList::compress(int32_t prefixEnd) {
  * @param prefixEnd
  */
 void TransactionsList::sort(vector<int32_t>* array, int32_t start, int32_t end,
-    		unique_ptr<ReusableTransactionIterator> it1,
-    		unique_ptr<ReusableTransactionIterator> it2,
+    		ReusableTransactionIterator *it1,
+    		ReusableTransactionIterator *it2,
     		int32_t prefixEnd) {
 	if (start >= end - 1) {
 		// size 0 or 1
@@ -85,8 +86,8 @@ void TransactionsList::sort(vector<int32_t>* array, int32_t start, int32_t end,
 }
 
 int32_t TransactionsList::merge(
-		unique_ptr<ReusableTransactionIterator> t1,
-		unique_ptr<ReusableTransactionIterator> t2,
+		ReusableTransactionIterator *t1,
+		ReusableTransactionIterator *t2,
 		int32_t prefixEnd) {
 	if (!t1->hasNext()) {
 		if (!t2->hasNext() || t2->next() > prefixEnd) {

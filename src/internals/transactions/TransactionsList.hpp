@@ -32,12 +32,12 @@ public:
 
 private:
     static void sort(vector<int32_t>* array, int32_t start, int32_t end,
-    		unique_ptr<ReusableTransactionIterator> it1,
-    		unique_ptr<ReusableTransactionIterator> it2,
+    		ReusableTransactionIterator *it1,
+    		ReusableTransactionIterator *it2,
     		int32_t prefixEnd);
     static int32_t merge(
-    		unique_ptr<ReusableTransactionIterator> t1,
-    		unique_ptr<ReusableTransactionIterator> t2,
+    		ReusableTransactionIterator *it1,
+    		ReusableTransactionIterator *it2,
     		int32_t prefixEnd);
 };
 
