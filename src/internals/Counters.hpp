@@ -10,10 +10,8 @@ using namespace std;
 #include "internals/TransactionReader.hpp"
 #include "internals/FrequentsIterator.hpp"
 #include "util/Iterator.hpp"
+#include "util/shortcuts.h"
 using namespace util;
-
-typedef vector<int32_t> vec_int32;
-typedef shared_ptr<vec_int32> p_vec_int32;
 
 namespace internals {
 
@@ -35,6 +33,7 @@ class FrequentIterator;
 class Counters
 {
 public:
+
 	/**
 	 * Items occuring less than minSup times will be considered infrequent
 	 */
@@ -64,7 +63,7 @@ public:
 	 *
 	 * Indexes above maxFrequent should be considered valid.
 	 */
-    p_vec_int32 supportCounts;
+    shp_vec_int32 supportCounts;
 
 	/**
 	 * For each item having a support count in [minSupport; 100% [ , gives how
@@ -73,7 +72,7 @@ public:
 	 *
 	 * Indexes above maxFrequent should be considered valid.
 	 */
-    p_vec_int32 distinctTransactionsCounts;
+    shp_vec_int32 distinctTransactionsCounts;
 
 	/**
 	 * Counts how many items have a support count in [minSupport; 100% [
@@ -93,7 +92,7 @@ protected:
 	 * getReverseRenaming to translate back these items, rather use parent's
 	 * reverseRenaming (or none for the initial dataset)
 	 */
-    p_vec_int32 closure;
+    shp_vec_int32 closure;
 
 	/**
 	 * Biggest item ID having a support count in [minSupport; 100% [
@@ -107,7 +106,7 @@ protected:
 	 * - reuseRenaming, the initial dataset's constructor (which also sets "renaming")
 	 * - compressRenaming, useful when recompacting dataset in recursions
 	 */
-    p_vec_int32 reverseRenaming;
+    shp_vec_int32 reverseRenaming;
 
 	/**
 	 * This field will be null EXCEPT if you're using the initial dataset's
@@ -117,7 +116,7 @@ protected:
 	 * It gives, for each original item ID, its new identifier. If it's negative
 	 * it means the item should be filtered.
 	 */
-    p_vec_int32 renaming;
+    shp_vec_int32 renaming;
 
 	/**
 	 * Exclusive index of the first item >= core_item in current base
@@ -142,13 +141,10 @@ public:
 	 * @param extension
 	 *            the item on which we're projecting - it won't appear in *any*
 	 *            counter (not even 'closure')
-	 * @param ignoredItems
-	 *            may be null, if it's not contained items won't appear in any
-	 *            counter either
 	 * @param maxItem
 	 *            biggest index among items to be found in "transactions"
 	 */
-    Counters(int32_t minimumSupport, Iterator<TransactionReader*>* transactions, int32_t extension, p_vec_int32 ignoredItems, int32_t maxItem);
+    Counters(int32_t minimumSupport, Iterator<TransactionReader*>* transactions, int32_t extension, int32_t maxItem);
     ~Counters();
 
 protected:
@@ -182,12 +178,12 @@ public:
 	/**
 	 * @return the renaming map from instantiation's base to current base
 	 */
-	p_vec_int32 getRenaming();
+	shp_vec_int32 getRenaming();
 
 	/**
 	 * @return a translation from internal item indexes to dataset's original indexes
 	 */
-	p_vec_int32 getReverseRenaming();
+	shp_vec_int32 getReverseRenaming();
 
 	/**
 	 * Will compress an older renaming, by removing infrequent items. Contained
@@ -198,7 +194,7 @@ public:
 	 * @return the translation from the old renaming to the compressed one
 	 *         (gives -1 for removed items)
 	 */
-	p_vec_int32 compressRenaming(p_vec_int32 olderReverseRenaming);
+	shp_vec_int32 compressRenaming(shp_vec_int32 olderReverseRenaming);
 
     int32_t getMaxCandidate();
 
@@ -217,7 +213,7 @@ public:
     FrequentsIterator* getLocalFrequentsIterator(int32_t from, int32_t to);
 
 protected:
-    void reuseRenaming(p_vec_int32 olderReverseRenaming);
+    void reuseRenaming(shp_vec_int32 olderReverseRenaming);
 
 };
 
@@ -252,7 +248,7 @@ class FrequentIterator : public FrequentsIterator
 private:
     int32_t index;
     int32_t max;
-    p_vec_int32 supportsFilter;
+    shp_vec_int32 supportsFilter;
 
 public:
     FrequentIterator();

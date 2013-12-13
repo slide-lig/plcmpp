@@ -1,6 +1,5 @@
 #include <internals/ExplorationStep.hpp>
 #include <internals/Counters.hpp>
-#include <internals/Dataset_TransactionsIterable.hpp>
 #include <internals/Dataset.hpp>
 #include <internals/FirstParentTest.hpp>
 #include <internals/FrequentsIterator.hpp>

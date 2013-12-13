@@ -20,19 +20,21 @@ struct FrequentIterator* static_frequent_iterator_init() {
 thread_local FrequentIterator* Counters::localFrequentsIterator =
 		static_frequent_iterator_init();
 
-p_vec_int32 make_p_vec_int32(uint32_t size)
+shp_vec_int32 make_p_vec_int32(uint32_t size)
 {
 	return make_shared<vec_int32>(vec_int32(size));
 }
 
-p_vec_int32 make_p_vec_int32(uint32_t size, int32_t init_value)
+shp_vec_int32 make_p_vec_int32(uint32_t size, int32_t init_value)
 {
 	return make_shared<vec_int32>(vec_int32(size, init_value));
 }
 
-Counters::Counters(int32_t minimumSupport,
-		Iterator<TransactionReader*>* transactions, int32_t extension,
-		p_vec_int32 ignoredItems, int32_t maxItem) {
+Counters::Counters(
+		int32_t minimumSupport,
+		Iterator<TransactionReader*>* transactions,
+		int32_t extension,
+		int32_t maxItem) {
 
 	renaming = 0;
 	minSupport = minimumSupport;
@@ -70,15 +72,6 @@ Counters::Counters(int32_t minimumSupport,
 	(*supportCounts)[extension] = 0;
 	(*distinctTransactionsCounts)[extension] = 0;
 	maxCandidate = extension;
-
-	if (ignoredItems != 0) {
-		for (int item : (*ignoredItems)) {
-			if (item <= maxItem) {
-				(*supportCounts)[item] = 0;
-				(*distinctTransactionsCounts)[item] = 0;
-			}
-		}
-	}
 
 	// item filtering and final computations : some are infrequent, some
 	// belong to closure
@@ -227,20 +220,20 @@ int32_t Counters::getMaxFrequent() {
 	return maxFrequent;
 }
 
-p_vec_int32 Counters::getRenaming() {
+shp_vec_int32 Counters::getRenaming() {
 	return renaming;
 }
 
-p_vec_int32 Counters::getReverseRenaming() {
+shp_vec_int32 Counters::getReverseRenaming() {
 	return reverseRenaming;
 }
 
-void Counters::reuseRenaming(p_vec_int32 olderReverseRenaming) {
+void Counters::reuseRenaming(shp_vec_int32 olderReverseRenaming) {
 	reverseRenaming = olderReverseRenaming;
 }
 
-p_vec_int32 Counters::compressRenaming(
-		p_vec_int32 olderReverseRenaming) {
+shp_vec_int32 Counters::compressRenaming(
+		shp_vec_int32 olderReverseRenaming) {
 
 	auto new_renaming_size =
 			max(olderReverseRenaming->size(), supportCounts->size());
