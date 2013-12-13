@@ -102,7 +102,7 @@ private:
 
 public:
     IdIter(IndexedTransactionsList *tlist);
-    int32_t& next() override;
+    int32_t next() override;
     bool hasNext() override;
 
 private:

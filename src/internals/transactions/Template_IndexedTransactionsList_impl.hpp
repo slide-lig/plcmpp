@@ -65,7 +65,7 @@ void Template_IndexedTransactionsList<T>::writeItem(
 		int32_t item) {
 	if (item >= MAX_VALUE) {
 		cerr << item <<
-				" too big for a this transaction list! Aborting."
+				" too big for this kind of transaction list! Aborting."
 				<< endl;
 		abort();
 	}

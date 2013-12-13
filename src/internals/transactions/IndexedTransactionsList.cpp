@@ -191,7 +191,7 @@ IdIter::IdIter(IndexedTransactionsList* tlist) {
 	findNext();
 }
 
-int32_t& IdIter::next() {
+int32_t IdIter::next() {
 	pos = nextPos;
 	findNext();
 	return pos;
