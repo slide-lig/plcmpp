@@ -20,7 +20,8 @@ public:
 	Template_IndexedTransactionsList(Counters* c);
 	Template_IndexedTransactionsList(int32_t transactionsLength,
 			int32_t nbTransactions);
-	Template_IndexedTransactionsList(const Template_IndexedTransactionsList& other);
+	Template_IndexedTransactionsList(
+			const Template_IndexedTransactionsList& other);
 
 	unique_ptr<ReusableTransactionIterator> getIterator() override;
 	unique_ptr<TransactionsList> clone() override;
