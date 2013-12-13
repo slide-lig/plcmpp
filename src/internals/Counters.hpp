@@ -5,6 +5,7 @@
 #include <vector>
 using namespace std;
 
+#include "internals/TransactionReader.hpp"
 #include "util/Iterator.hpp"
 using namespace util;
 
