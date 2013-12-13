@@ -12,7 +12,7 @@ namespace tidlist {
 ConsecutiveItemsConcatenatedTidList::ConsecutiveItemsConcatenatedTidList(
 		Counters* c, int32_t highestTidList) :
 		ConsecutiveItemsConcatenatedTidList(
-				c->distinctTransactionsCounts, highestTidList) {
+				c->distinctTransactionsCounts.get(), highestTidList) {
 }
 
 ConsecutiveItemsConcatenatedTidList::ConsecutiveItemsConcatenatedTidList(
