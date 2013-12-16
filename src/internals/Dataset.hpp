@@ -25,19 +25,21 @@ class Counters;
 class Dataset
 {
 protected:
-	unique_ptr<TransactionsList> transactions;
+	unique_ptr<TransactionsList> _transactions;
 
 	/**
 	 * frequent item => array of occurrences indexes in "concatenated"
 	 * Transactions are added in the same order in all occurrences-arrays.
 	 */
-	unique_ptr<TidList> tidLists;
+	unique_ptr<TidList> _tidList;
 
 public:
     void compress(int32_t coreItem);
     unique_ptr<Dataset> clone();
     unique_ptr<TransactionsIterable> getSupport(
     						int32_t item);
+    unique_ptr<ReusableTransactionIterator> getTransactionIterator();
+
     Dataset(Counters* counters, Iterator<TransactionReader*>* transactions);
     /**
 	 * @param counters
@@ -48,10 +50,9 @@ public:
 	 *            MAX_VALUE when using predictive pptest.
 	 */
     Dataset(Counters* counters, Iterator<TransactionReader*>* transactions, int32_t tidListBound);
-    ~Dataset();
 
 protected:
-    Dataset(TransactionsList* transactions, TidList* occurrences);
+    Dataset(const Dataset& other);
 	/**
 	 * @return how many transactions (ignoring their weight) are stored behind
 	 *         this dataset
@@ -63,7 +64,8 @@ protected:
 class TransactionsIterable
 {
 protected:
-	unique_ptr<TidList::TIntIterable> tids;
+	unique_ptr<TidList::TIntIterable> _tids;
+	Dataset *_dataset;
 
 public:
     TransactionsIterable(Dataset *dataset,
@@ -74,8 +76,8 @@ public:
 class TransactionsIterator : public Iterator<TransactionReader*>
 {
 protected:
-	unique_ptr<Iterator<int32_t> > it;
-	unique_ptr<ReusableTransactionIterator> transIter;
+	unique_ptr<Iterator<int32_t> > _it;
+	unique_ptr<ReusableTransactionIterator> _transIter;
 
 public:
     TransactionsIterator(Dataset *dataset,
