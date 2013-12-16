@@ -6,6 +6,8 @@ namespace util {
 // peek delay, in milliseconds
 const long MemoryPeakWatcherThread::CHECK_DELAY = 15000;
 
+struct rusage MemoryPeakWatcherThread::rusage_holder;
+
 MemoryPeakWatcherThread::MemoryPeakWatcherThread() :
 						PollableThread(CHECK_DELAY) {
 	maxUsedMemory = 0;

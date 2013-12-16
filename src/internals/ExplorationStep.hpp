@@ -6,6 +6,7 @@
 #include <cstdint>
 using namespace std;
 
+#include "internals/FrequentsIterator.hpp"
 
 namespace internals {
 
@@ -15,7 +16,6 @@ class Dataset;
 class TransactionsIterable;
 class Counters;
 class Selector;
-class FrequentsIterator;
 
 
 struct Progress {

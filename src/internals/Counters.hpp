@@ -15,7 +15,7 @@ using namespace util;
 
 namespace internals {
 
-class FrequentIterator;
+class FrequentIterator; // defined below
 
 /**
  * This class' constructor performs item counting over a transactions database,
