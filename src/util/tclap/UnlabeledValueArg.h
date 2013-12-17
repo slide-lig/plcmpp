@@ -52,6 +52,7 @@ class UnlabeledValueArg : public ValueArg<T>
 	using ValueArg<T>::_name;
 	using ValueArg<T>::_description;
 	using ValueArg<T>::_alreadySet;
+	using ValueArg<T>::_required;
 	using ValueArg<T>::toString;
 
 	public:
@@ -301,7 +302,10 @@ template<class T>
 std::string UnlabeledValueArg<T>::shortID(const std::string& val) const
 {
 	static_cast<void>(val); // Ignore input, don't warn
-	return std::string("<") + _typeDesc + ">";
+	if (_required)
+		return std::string("<") + _typeDesc + ">";
+	else
+		return std::string("[") + _typeDesc + "]";
 }
 
 /**
@@ -310,12 +314,10 @@ std::string UnlabeledValueArg<T>::shortID(const std::string& val) const
 template<class T>
 std::string UnlabeledValueArg<T>::longID(const std::string& val) const
 {
-	static_cast<void>(val); // Ignore input, don't warn
-
 	// Ideally we would like to be able to use RTTI to return the name
 	// of the type required for this argument.  However, g++ at least, 
 	// doesn't appear to return terribly useful "names" of the types.  
-	return std::string("<") + _typeDesc + ">";
+	return shortID(val);
 }
 
 /**
