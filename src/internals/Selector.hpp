@@ -9,6 +9,8 @@ using namespace std;
 
 namespace internals {
 
+class ExplorationStep;
+
 /**
  * Main class for chained exploration filters, implemented as an immutable
  * chained list.
@@ -71,6 +73,7 @@ public:
     };
 
     class List : public deque<unique_ptr<Selector>> {
+    public:
     	unique_ptr<List> copy();
 
     	bool select(int32_t extension, ExplorationStep* state);

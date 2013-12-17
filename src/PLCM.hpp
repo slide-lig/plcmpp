@@ -2,6 +2,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include <mutex>
 #include <deque>
 #include <cstdint>
@@ -9,11 +10,9 @@
 #include <thread>
 using namespace std;
 
-#include "internals/ExplorationStep.hpp"
 #include "io/PatternsCollector.hpp"
 #include "util/tclap/CmdLine.h"
 
-using namespace internals;
 using io::PatternsCollector;
 
 class PLCMThread;
@@ -21,6 +20,12 @@ class PLCMThread;
 namespace util {
 class ProgressWatcherThread;
 }
+
+namespace internals {
+class ExplorationStep;
+}
+
+using internals::ExplorationStep;
 
 class PLCM
 {
@@ -75,7 +80,7 @@ protected:
 	unique_lock<mutex> *_lock;
 	thread* _thread;
     deque<ExplorationStep*>* stackedJobs;
-    int32_t id;
+    thread::id id;
     PLCM *_PLCM_instance;
 
 public:
@@ -83,7 +88,7 @@ public:
 
 public:
     PLCMThread(PLCM *PLCM_instance, int32_t id);
-    int32_t getId();
+    thread::id getId();
     void run();
 
 protected:

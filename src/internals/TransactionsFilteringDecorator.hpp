@@ -5,7 +5,8 @@
 #include <vector>
 using namespace std;
 
-#include <internals/TransactionsIteratorDecorator.hpp>
+#include "internals/TransactionsIteratorDecorator.hpp"
+#include "util/shortcuts.h"
 
 using namespace util;
 
@@ -14,13 +15,13 @@ namespace internals {
 class TransactionsFilteringDecorator : public TransactionsIteratorDecorator
 {
 protected:
-    vector<int32_t>* _support;
+	shp_vec_int32 _support;
 
 public:
     int32_t transform(int32_t in) override;
 
     TransactionsFilteringDecorator(
     		Iterator<TransactionReader*>* filtered,
-    		vector<int32_t>* support);
+    		shp_vec_int32 support);
 };
 }

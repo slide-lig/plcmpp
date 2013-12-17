@@ -1,6 +1,10 @@
 #pragma once
 
 #include <internals/TransactionReader.hpp>
+#include <util/Iterator.hpp>
+
+using util::Iterator;
+using internals::TransactionReader;
 
 namespace io {
 
@@ -15,7 +19,7 @@ namespace io {
  * transactions. This second iteration may be done with a rebasing map.
  */
 
-class FileReader
+class FileReader : public Iterator<TransactionReader*>
 {
 	/**
 	 * We avoid small allocations by using megabyte pages. Transactions are stored in pages

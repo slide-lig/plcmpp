@@ -1,5 +1,6 @@
 
 #include <internals/FirstParentTest.hpp>
+#include <internals/ExplorationStep.hpp>
 #include <internals/Counters.hpp>
 #include <internals/Dataset.hpp>
 #include <util/shortcuts.h>
@@ -45,7 +46,7 @@ bool FirstParentTest::isAincludedInB(
 bool FirstParentTest::allowExploration(int32_t extension,
 		ExplorationStep* state) {
 	shp_vec_int32 supportCounts = state->counters->supportCounts;
-	Dataset* d = state->dataset;
+	Dataset* d = state->dataset.get();
 
 	int32_t candidateSupport = (*supportCounts)[extension];
 

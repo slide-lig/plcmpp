@@ -59,7 +59,7 @@ unique_ptr<PatternsCollector> PLCM::instanciateCollector(TCLAP::CmdLine& cmd,
 PLCMThread::PLCMThread(PLCM* PLCM_instance, int32_t id) {
 }
 
-int32_t PLCMThread::getId() {
+thread::id PLCMThread::getId() {
 }
 
 void PLCMThread::run() {

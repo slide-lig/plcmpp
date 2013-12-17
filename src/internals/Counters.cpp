@@ -207,9 +207,6 @@ Counters::Counters(const Counters& other) {
 	maxCandidate = other.maxCandidate;
 }
 
-Counters::~Counters() {
-}
-
 unique_ptr<Counters> Counters::clone() {
 	// create a clone using the copy constructor
 	Counters *cloned = new Counters(*this);
@@ -226,6 +223,10 @@ shp_vec_int32 Counters::getRenaming() {
 
 shp_vec_int32 Counters::getReverseRenaming() {
 	return reverseRenaming;
+}
+
+shp_vec_int32 Counters::getClosure() {
+	return closure;
 }
 
 void Counters::reuseRenaming(shp_vec_int32 olderReverseRenaming) {

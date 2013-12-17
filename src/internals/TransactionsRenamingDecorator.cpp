@@ -5,7 +5,7 @@ namespace internals {
 
 TransactionsRenamingDecorator::TransactionsRenamingDecorator(
 		Iterator<TransactionReader*>* filtered,
-		vector<int32_t>* rebasing) :
+		shp_vec_int32 rebasing) :
 		TransactionsIteratorDecorator(filtered), _rebasing(rebasing) {
 }
 

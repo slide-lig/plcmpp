@@ -5,7 +5,7 @@ namespace internals {
 
 TransactionsFilteringDecorator::TransactionsFilteringDecorator(
 		Iterator<TransactionReader*>* filtered,
-		vector<int32_t>* support) :
+		shp_vec_int32 support) :
 		TransactionsIteratorDecorator(filtered), _support(support) {
 }
 

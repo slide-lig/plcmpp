@@ -146,9 +146,6 @@ public:
 	 *            biggest index among items to be found in "transactions"
 	 */
     Counters(int32_t minimumSupport, Iterator<TransactionReader*>* transactions, int32_t extension, int32_t maxItem);
-    ~Counters();
-
-protected:
 	/**
 	 * Does item counting over an initial dataset : it will only ignore
 	 * infrequent items, and it doesn't know what's biggest item ID. IT ALSO
@@ -182,9 +179,16 @@ public:
 	shp_vec_int32 getRenaming();
 
 	/**
+	 * @return the closure
+	 */
+	shp_vec_int32 getClosure();
+
+	/**
 	 * @return a translation from internal item indexes to dataset's original indexes
 	 */
 	shp_vec_int32 getReverseRenaming();
+
+    void reuseRenaming(shp_vec_int32 olderReverseRenaming);
 
 	/**
 	 * Will compress an older renaming, by removing infrequent items. Contained
@@ -212,10 +216,6 @@ public:
 	 * @return an iterator over frequent items (in ascending order)
 	 */
     FrequentsIterator* getLocalFrequentsIterator(int32_t from, int32_t to);
-
-protected:
-    void reuseRenaming(shp_vec_int32 olderReverseRenaming);
-
 };
 
 /**
