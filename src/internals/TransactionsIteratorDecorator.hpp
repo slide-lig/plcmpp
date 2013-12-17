@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include <memory>
+using namespace std;
+
 #include <internals/TransactionReader.hpp>
 #include <util/Iterator.hpp>
 
@@ -21,7 +24,7 @@ protected:
 	    TransactionsIteratorDecorator *_deco;
 
 	public:
-	    void reset(TransactionReader* filtered);
+	    void setTransationReader(TransactionReader* filtered);
 
 	protected:
 	    void findNext();
@@ -37,8 +40,8 @@ protected:
 	};
 
 protected:
-	Iterator<TransactionReader*>* wrapped;
-    FilteredTransaction* instance;
+	Iterator<TransactionReader*>* _wrapped;
+    unique_ptr<FilteredTransaction> _instance;
 
 public:
     bool hasNext() override;
