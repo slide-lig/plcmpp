@@ -94,6 +94,10 @@ unique_ptr<ReusableTransactionIterator> Dataset::getTransactionIterator() {
 	return _transactions->getIterator();
 }
 
+unique_ptr<Iterator<int32_t> > Dataset::getTidList(int32_t item) {
+	return _tidList->get(item);
+}
+
 int32_t Dataset::getStoredTransactionsCount() {
 	return _transactions->size();
 }

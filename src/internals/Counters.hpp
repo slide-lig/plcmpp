@@ -85,6 +85,12 @@ public:
 	 */
     bool compactedArrays;
 
+	/**
+	 * Biggest item ID having a support count in [minSupport; 100% [
+	 */
+    int32_t maxFrequent;
+
+
 protected:
 	/**
 	 * Items found to have a support count equal to transactionsCount (using IDs
@@ -93,11 +99,6 @@ protected:
 	 * reverseRenaming (or none for the initial dataset)
 	 */
     shp_vec_int32 closure;
-
-	/**
-	 * Biggest item ID having a support count in [minSupport; 100% [
-	 */
-    int32_t maxFrequent;
 
 	/**
 	 * This array allows another class to output the discovered closure using original items' IDs.

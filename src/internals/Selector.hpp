@@ -47,6 +47,8 @@ protected:
     bool select(int32_t extension, ExplorationStep* state);
 
 public:
+    virtual ~Selector();
+
 	/**
 	 * Thrown when a Selector finds that an extension won't be the first parent
 	 * of its closed pattern (FirstParentTest should be the only one concerned)

@@ -39,6 +39,7 @@ public:
     unique_ptr<TransactionsIterable> getSupport(
     						int32_t item);
     unique_ptr<ReusableTransactionIterator> getTransactionIterator();
+    unique_ptr<Iterator<int32_t> > getTidList(int32_t item);
 
     Dataset(Counters* counters, Iterator<TransactionReader*>* transactions);
     /**
