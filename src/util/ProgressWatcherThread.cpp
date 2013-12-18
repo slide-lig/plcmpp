@@ -20,7 +20,12 @@ void ProgressWatcherThread::onPoll(bool timeout) {
     		progress->current << "/" << progress->last << endl;
 }
 
-void ProgressWatcherThread::setInitState(ExplorationStep* step) {
+ProgressWatcherThread::ProgressWatcherThread() :
+		PollableThread(PRINT_STATUS_EVERY) {
+	_step = nullptr;
+}
+
+void ProgressWatcherThread::setInitState(shared_ptr<ExplorationStep> step) {
 	_step = step;
 }
 

@@ -22,12 +22,12 @@ thread_local FrequentIterator* Counters::localFrequentsIterator =
 
 shp_vec_int32 make_p_vec_int32(uint32_t size)
 {
-	return make_shared<vec_int32>(vec_int32(size));
+	return make_shared<vec_int32>(size);
 }
 
 shp_vec_int32 make_p_vec_int32(uint32_t size, int32_t init_value)
 {
-	return make_shared<vec_int32>(vec_int32(size, init_value));
+	return make_shared<vec_int32>(size, init_value);
 }
 
 Counters::Counters(

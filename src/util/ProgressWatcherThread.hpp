@@ -7,6 +7,8 @@ namespace internals {
 	class ExplorationStep;
 }
 
+using internals::ExplorationStep;
+
 /**
  * This thread will give some information about the progression on stderr every
  * 5 minutes. When running on Hadoop it may also be used to poke the master node
@@ -22,12 +24,13 @@ class ProgressWatcherThread : public PollableThread
 {
 private:
 	static const long PRINT_STATUS_EVERY;
-	internals::ExplorationStep *_step;
+	shared_ptr<ExplorationStep> _step;
 
 	void onPoll(bool timeout);
 
 public:
-	void setInitState(internals::ExplorationStep* step);
+	ProgressWatcherThread();
+	void setInitState(shared_ptr<ExplorationStep> step);
 };
 
 }

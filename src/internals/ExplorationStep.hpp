@@ -35,13 +35,13 @@ public:
 class ExplorationStep {
 
 private:
-	static bool verbose;
-	static bool ultraVerbose;
-
 	static const string KEY_VIEW_SUPPORT_THRESHOLD;
 	static const string KEY_LONG_TRANSACTIONS_THRESHOLD;
 
 public:
+	static bool verbose;
+	static bool ultraVerbose;
+
 	/**
 	 * closure of parent's pattern UNION extension
 	 */

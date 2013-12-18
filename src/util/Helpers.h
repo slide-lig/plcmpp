@@ -19,6 +19,7 @@ namespace util {
 class Helpers {
 public:
 	static string formatted_time();
+	static double precise_time();
 
 	template <class T>
 	static string printed_vector(vector<T> *vec) {

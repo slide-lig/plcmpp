@@ -23,5 +23,12 @@ string Helpers::formatted_time() {
     return string(formatted_time);
 }
 
+double Helpers::precise_time() {
+	struct timespec curr_time;
+	clock_gettime(CLOCK_MONOTONIC,  &curr_time);
+
+	return curr_time.tv_sec + ((double) curr_time.tv_nsec) * 1e-9;
+}
+
 } /* namespace util */
 
