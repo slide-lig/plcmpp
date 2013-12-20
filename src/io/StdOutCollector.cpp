@@ -5,7 +5,8 @@
 using namespace std;
 
 #include <io/StdOutCollector.hpp>
-
+#include <util/Helpers.h>
+using util::Helpers;
 
 io::StdOutCollector::StdOutCollector() {
 	collected = 0;
@@ -14,12 +15,8 @@ io::StdOutCollector::StdOutCollector() {
 
 void io::StdOutCollector::collect(int32_t support, vector<int32_t>* pattern) {
 	// print...
-	cout << support << "\t[ ";
-
-	copy(pattern->begin(), pattern->end()-1,
-	              ostream_iterator<int32_t>(cout, ", "));
-
-	cout << *(pattern->end()) << " ]" << endl;
+	cout << support << "\t" <<
+			Helpers::printed_vector(pattern) << endl;
 
 	collected++;
 	collectedLength += pattern->size();

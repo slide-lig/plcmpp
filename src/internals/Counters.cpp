@@ -2,6 +2,7 @@
 #include <queue>
 #include <memory>
 #include <algorithm>
+#include <iostream>
 using namespace std;
 
 #include <internals/Counters.hpp>
@@ -36,11 +37,11 @@ Counters::Counters(
 		int32_t extension,
 		int32_t maxItem) {
 
-	renaming = 0;
+	renaming = nullptr;
 	minSupport = minimumSupport;
 	supportCounts = make_p_vec_int32(maxItem + 1);
 	distinctTransactionsCounts = make_p_vec_int32(maxItem + 1);
-	reverseRenaming = 0;
+	reverseRenaming = nullptr;
 
 	// item support and transactions counting
 
@@ -76,7 +77,7 @@ Counters::Counters(
 	// item filtering and final computations : some are infrequent, some
 	// belong to closure
 
-	ItemsetsFactory *closureBuilder = new ItemsetsFactory();
+	p_vec_int32 new_closure = new vec_int32();
 	uint32_t remainingDistinctTransLengths = 0;
 	uint32_t remainingFrequents = 0;
 	uint32_t biggestItemID = 0;
@@ -86,7 +87,7 @@ Counters::Counters(
 			(*supportCounts)[i] = 0;
 			(*distinctTransactionsCounts)[i] = 0;
 		} else if ((*supportCounts)[i] == transactionsCount) {
-			closureBuilder->push_back(i);
+			new_closure->push_back(i);
 			(*supportCounts)[i] = 0;
 			(*distinctTransactionsCounts)[i] = 0;
 		} else {
@@ -96,7 +97,7 @@ Counters::Counters(
 		}
 	}
 
-	closure.reset(closureBuilder);
+	closure.reset(new_closure);
 	distinctTransactionLengthSum = remainingDistinctTransLengths;
 	nbFrequents = remainingFrequents;
 	maxFrequent = biggestItemID;
@@ -133,8 +134,8 @@ Counters::Counters(int32_t minimumSupport,
 
 	// item filtering and final computations : some are infrequent, some
 	// belong to closure
-	priority_queue<ItemAndSupport*> renamingHeap;
-	ItemsetsFactory *closureBuilder = new ItemsetsFactory();
+	priority_queue<ItemAndSupport> renamingHeap;
+	p_vec_int32 new_closure = new vec_int32();
 
 	for (auto iterator = supportsMap->begin(); iterator != supportsMap->end();
 			iterator++) {
@@ -142,13 +143,13 @@ Counters::Counters(int32_t minimumSupport,
 		int32_t supportCount = iterator->second;
 
 		if (supportCount == transactionsCount) {
-			closureBuilder->push_back(item);
+			new_closure->push_back(item);
 		} else if (supportCount >= minimumSupport) {
-			renamingHeap.push(new ItemAndSupport(item, supportCount));
+			renamingHeap.emplace(item, supportCount);
 		} // otherwise item is infrequent : its renaming is already -1, ciao
 	}
 
-	closure.reset(closureBuilder);
+	closure.reset(new_closure);
 	nbFrequents = renamingHeap.size();
 	maxFrequent = nbFrequents - 1;
 	maxCandidate = maxFrequent + 1;
@@ -161,12 +162,11 @@ Counters::Counters(int32_t minimumSupport,
 	int newItemID = 0;
 
 	while (!renamingHeap.empty()) {
-		ItemAndSupport *entry = renamingHeap.top();
-		int32_t item = entry->item();
-		int32_t support = entry->support();
+		const ItemAndSupport &entry = renamingHeap.top();
+		int32_t item = entry.item();
+		int32_t support = entry.support();
 
 		renamingHeap.pop();
-		delete entry;
 
 		(*renaming)[item] = newItemID;
 		(*reverseRenaming)[newItemID] = item;

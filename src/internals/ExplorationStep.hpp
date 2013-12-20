@@ -59,7 +59,7 @@ protected:
 	 * Selectors chain
 	 */
 	shared_ptr<Selector::List> selectChain;
-	shared_ptr<FrequentsIterator> candidates;
+	shared_ptr<FrequentsIterator> candidates = nullptr;
 
 private:
 	/**
@@ -68,6 +68,7 @@ private:
 	 */
 	shared_ptr<map<int32_t, int32_t> > failedFPTests;
 	mutex failedFPTests_mutex;
+	mutex candidates_mutex;
 
 public:
 	/**

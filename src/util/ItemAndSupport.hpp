@@ -8,9 +8,6 @@ using namespace std;
 
 namespace util {
 
-/* CAUTION: the support must be first in the tuple
- * because it is used for ordering them. */
-
 class ItemAndSupport : public tuple<uint32_t, uint32_t>
 {
 public:
@@ -19,12 +16,20 @@ public:
 	{
 	}
 
-	inline uint32_t item() {
+	inline uint32_t item() const {
 		return get<1>(*this);
 	}
 
-	inline uint32_t support() {
+	inline uint32_t support() const {
 		return get<0>(*this);
 	}
 };
+
+/* We sort according to the support (only). */
+inline bool operator< (const ItemAndSupport &i1, const ItemAndSupport &i2)
+{
+    return i1.support() < i2.support();
+}
+
+
 }

@@ -25,7 +25,7 @@ const string KEY_VIEW_SUPPORT_THRESHOLD = "toplcm.threshold.view";;
 const string KEY_LONG_TRANSACTIONS_THRESHOLD = "toplcm.threshold.long";
 
 ExplorationStep::ExplorationStep(int32_t minimumSupport,
-		string& path) {
+		string& path) : candidates(nullptr) {
 	core_item = INT_MAX;
 	selectChain.reset(new Selector::List());
 
@@ -41,7 +41,7 @@ ExplorationStep::ExplorationStep(int32_t minimumSupport,
 
 	dataset = unique_ptr<Dataset>(new Dataset(counters.get(), &reader));
 
-	candidates.reset(counters->getExtensionsIterator().get());
+	candidates = Helpers::unique_to_shared(counters->getExtensionsIterator());
 
 	failedFPTests.reset(new map<int32_t, int32_t>());
 }
@@ -94,8 +94,8 @@ ExplorationStep::ExplorationStep(ExplorationStep* parent,
 		if (parent->selectChain == nullptr) {
 			selectChain = nullptr;
 		} else {
-			selectChain.reset(
-					parent->selectChain->copy().get());
+			selectChain = Helpers::unique_to_shared(
+					parent->selectChain->copy());
 		}
 
 		selectChain->push_front(unique_ptr<Selector>(new FirstParentTest()));
@@ -105,7 +105,7 @@ ExplorationStep::ExplorationStep(ExplorationStep* parent,
 
 		// and intanciateDataset may choose to trigger some renaming in
 		// counters
-		candidates.reset(counters->getExtensionsIterator().get());
+		candidates = Helpers::unique_to_shared(counters->getExtensionsIterator());
 	}
 }
 
@@ -122,8 +122,11 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 	}
 
 	while (true) {
-		int32_t candidate = candidates->next();
-
+		int32_t candidate;
+		{
+			lock_guard<mutex> lg(candidates_mutex);
+			candidate = candidates->next();
+		}
 		if (candidate < 0) {
 			return nullptr;
 		}
@@ -132,9 +135,10 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 			if (selectChain == nullptr || selectChain->select(candidate, this)) {
 				unique_ptr<TransactionsIterable> support = dataset->getSupport(candidate);
 
+				auto it = support->iterator();
 				unique_ptr<Counters> candidateCounts(new Counters(
 						counters->minSupport,
-						support->iterator().get(),
+						it.get(),
 						candidate,
 						counters->maxFrequent));
 

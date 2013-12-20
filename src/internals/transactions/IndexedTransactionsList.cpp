@@ -83,19 +83,20 @@ void IndexedTransactionsList::beginTransaction(int32_t transId,
 	}
 }
 
-void IndexedTransactionsList::findNext(int32_t nextPos) {
+int32_t IndexedTransactionsList::findNext(int32_t nextPos) {
 	while (true) {
 		nextPos++;
 		uint32_t nextPosStart = nextPos << 1;
 		if (nextPosStart >= _indexAndFreqs->size() ||
 				(*_indexAndFreqs)[nextPosStart] == -1) {
 			nextPos = -1;
-			return;
+			return nextPos;
 		}
 		if ((*_indexAndFreqs)[nextPosStart + 1] > 0) {
-			return;
+			return nextPos;
 		}
 	}
+	return 0; // never reached, avoids a warning
 }
 
 int32_t IndexedTransactionsList::size() {
@@ -202,7 +203,7 @@ bool IdIter::hasNext() {
 }
 
 void IdIter::findNext() {
-	_tlist->findNext(nextPos);
+	nextPos = _tlist->findNext(nextPos);
 }
 
 }

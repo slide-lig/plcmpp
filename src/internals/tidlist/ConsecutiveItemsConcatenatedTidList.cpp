@@ -61,6 +61,16 @@ unique_ptr<TidList::TIntIterable>
 
 void ConsecutiveItemsConcatenatedTidList::addTransaction(
 		int32_t item, int32_t transaction) {
+	uint32_t itemIndex = item << 1;
+	if (itemIndex > _indexAndFreqs->size() ||
+			(*_indexAndFreqs)[itemIndex] == -1) {
+		cerr << "item " << item << " has no tidlist" << endl;
+		abort();
+	}
+	int32_t start = (*_indexAndFreqs)[itemIndex];
+	int32_t index = (*_indexAndFreqs)[itemIndex + 1];
+	write(start + index, transaction);
+	(*_indexAndFreqs)[itemIndex + 1]++;
 }
 
 TidIterable::TidIterable(

@@ -5,22 +5,25 @@
 using namespace std;
 
 #include <io/FileReader.hpp>
+#include <util/Helpers.h>
+using namespace util;
 
-const int32_t io::FileReader::Storage::STARTUP_STORAGE_SIZE = 64*1024;
+namespace io {
+const int32_t FileReader::Storage::STARTUP_STORAGE_SIZE = 64*1024;
 
-int io::FileReader::CopyReader::getTransactionSupport() {
+int FileReader::CopyReader::getTransactionSupport() {
 	return 1;
 }
 
-int io::FileReader::CopyReader::next() {
+int FileReader::CopyReader::next() {
 	return (*(current_trans_current_item++));
 }
 
-bool io::FileReader::CopyReader::hasNext() {
+bool FileReader::CopyReader::hasNext() {
 	return current_trans_current_item != current_trans_end_items;
 }
 
-io::FileReader::CopyReader::CopyReader(
+FileReader::CopyReader::CopyReader(
 		Storage* storage, vector<int32_t> *renaming) {
 	_storage = storage;
 	_renaming = renaming;
@@ -28,11 +31,11 @@ io::FileReader::CopyReader::CopyReader(
 	// used later to show that we have not started reading
 }
 
-bool io::FileReader::CopyReader::hasMoreTransactions() {
-	return (current_trans_end_items == _storage->end());
+bool FileReader::CopyReader::hasMoreTransactions() {
+	return (next_trans_start != _storage->end());
 }
 
-void io::FileReader::CopyReader::prepareForNextTransaction() {
+void FileReader::CopyReader::prepareForNextTransaction() {
 	vector<int32_t>::iterator it_renaming_src, it_renaming_dst;
 
 	current_trans_start = next_trans_start;
@@ -43,7 +46,7 @@ void io::FileReader::CopyReader::prepareForNextTransaction() {
 	for (	it_renaming_src = current_trans_current_item;
 			it_renaming_src != next_trans_start;
 			it_renaming_src++) {
-		uint32_t renamed = (*_renaming)[*it_renaming_src];
+		int32_t renamed = (*_renaming)[*it_renaming_src];
 		if (renamed >= 0) {
 			*(it_renaming_dst++) = renamed;
 		}
@@ -53,7 +56,7 @@ void io::FileReader::CopyReader::prepareForNextTransaction() {
 	std::sort(current_trans_current_item, current_trans_end_items);
 }
 
-io::FileReader::LineReader::LineReader(Storage *storage, string &path) {
+FileReader::LineReader::LineReader(Storage *storage, string &path) {
 	_storage = storage;
 	_file = new std::ifstream(path);
 
@@ -66,18 +69,17 @@ io::FileReader::LineReader::LineReader(Storage *storage, string &path) {
 	nextChar = _file->get();
 }
 
-io::FileReader::LineReader::~LineReader()
+FileReader::LineReader::~LineReader()
 {
 	_file->close();
 	delete _file;
 }
 
-int io::FileReader::LineReader::getTransactionSupport() {
+int FileReader::LineReader::getTransactionSupport() {
 	return 1;
 }
 
-int io::FileReader::LineReader::next() {
-	nextChar = _file->get();
+int FileReader::LineReader::next() {
 	int nextInt = -1;
 	while (nextChar == ' ')
 		nextChar = _file->get();
@@ -98,14 +100,14 @@ int io::FileReader::LineReader::next() {
 	return nextInt;
 }
 
-bool io::FileReader::LineReader::hasNext() {
-	bool end_of_transaction = (nextChar != '\n');
+bool FileReader::LineReader::hasNext() {
+	bool end_of_transaction = (nextChar == '\n');
 	if (end_of_transaction)
 		_storage->endTransaction();
-	return end_of_transaction;
+	return !end_of_transaction;
 }
 
-bool io::FileReader::LineReader::hasMoreTransactions() {
+bool FileReader::LineReader::hasMoreTransactions() {
 	// skip empty lines
 	while ((nextChar == '\n') &&
 			(_file->good())) {
@@ -114,7 +116,7 @@ bool io::FileReader::LineReader::hasMoreTransactions() {
 	return _file->good();
 }
 
-void io::FileReader::LineReader::prepareForNextTransaction() {
+void FileReader::LineReader::prepareForNextTransaction() {
 	// skip empty lines
 	while (nextChar == '\n') {
 		nextChar = _file->get();
@@ -122,66 +124,56 @@ void io::FileReader::LineReader::prepareForNextTransaction() {
 	_storage->startNewTransaction();
 }
 
-void io::FileReader::close(vector<int32_t>* renamingMap) {
+void FileReader::close(vector<int32_t>* renamingMap) {
 	delete _reader;
-	_reader = new io::FileReader::CopyReader(_storage, renamingMap);
+	_reader = new FileReader::CopyReader(_storage, renamingMap);
 }
 
-bool io::FileReader::hasNext() {
+bool FileReader::hasNext() {
 	return _reader->hasMoreTransactions();
 }
 
-internals::TransactionReader* io::FileReader::next() {
+internals::TransactionReader* FileReader::next() {
 	_reader->prepareForNextTransaction();
 	return _reader;
 }
 
-void io::FileReader::remove() {
+void FileReader::remove() {
 	cerr << "Unsupported! Aborting." << endl;
 	abort();
 }
 
-io::FileReader::FileReader(string& path) {
-	_storage = new io::FileReader::Storage();
-	_reader = new io::FileReader::LineReader(_storage, path);
+FileReader::FileReader(string& path) {
+	_storage = new FileReader::Storage();
+	_reader = new FileReader::LineReader(_storage, path);
 }
 
-io::FileReader::~FileReader() {
+FileReader::~FileReader() {
 	delete _reader;
 	delete _storage;
 }
 
-io::FileReader::Storage::Storage() : vector<int32_t>(STARTUP_STORAGE_SIZE) {
-	current_trans_next_item = begin();
+FileReader::Storage::Storage() : vector<int32_t>() {
+	reserve(STARTUP_STORAGE_SIZE);
 	current_trans_len = 0;
 }
 
-io::FileReader::Storage::~Storage() {
+FileReader::Storage::~Storage() {
 }
 
-void io::FileReader::Storage::startNewTransaction() {
-	vector<int32_t>::iterator new_trans_start =
-			current_trans_next_item;
-	if (current_trans_next_item == begin())
-	{
-		new_trans_start = begin();
-	}
-	else
-	{
-		new_trans_start = current_trans_next_item;
-	}
+void FileReader::Storage::startNewTransaction() {
 	// first integer is the size of the transaction
-	// we must shift to next one
-	current_trans_next_item = new_trans_start+1;
+	// we reserve it
+	push_back(0);
 	current_trans_len = 0;
 }
 
-void io::FileReader::Storage::addNewItem(int32_t item) {
-	*(current_trans_next_item++) = item;
+void FileReader::Storage::addNewItem(int32_t item) {
+	push_back(item);
 	current_trans_len++;
 }
 
-void io::FileReader::Storage::endTransaction() {
+void FileReader::Storage::endTransaction() {
 	/* we must update the transaction size
 	 * we do not maintain an iterator pointing to the start of
 	 * the transaction (i.e. the place where we will store
@@ -190,7 +182,8 @@ void io::FileReader::Storage::endTransaction() {
 	 * such an iterator would be invalidated.
 	 * instead we recompute this position here.
 	 */
-	vector<int32_t>::iterator new_trans_start =
-			current_trans_next_item - current_trans_len -1;
+	auto new_trans_start = end() - current_trans_len -1;
 	*new_trans_start = current_trans_len;
+}
+
 }

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <sys/resource.h>
-#include <sys/epoll.h>
-#include <map>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <queue>
 
 using namespace std;
 
@@ -12,20 +12,18 @@ namespace util {
 class PollableThread
 {
 private:
-	int _pipe_to_thread[2];
+	queue<char> _queue;
+	mutex _mutex;
+	condition_variable _queue_cond_var;
 	long _auto_poll_timeout;
 
-	int _epoll_fd;
-	struct epoll_event _input_events;
-	struct epoll_event _output_events;
-
-	std::thread* _thread;
+	thread* _thread;
 
 	int run();
 
 protected:
 	virtual void onPoll(bool timeout) = 0;
-	void sendFromThread();
+	void sendToThread(char c);
 
 public:
 	PollableThread(long auto_poll_timeout);

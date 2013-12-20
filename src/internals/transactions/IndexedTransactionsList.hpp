@@ -32,7 +32,7 @@ public:
 	void setTransSupport(int32_t trans, int32_t s);
 	void beginTransaction(int32_t transId, int32_t support);
 	virtual void writeItem(int32_t item) = 0;
-	void findNext(int32_t nextPos);
+	int32_t findNext(int32_t nextPos);
 
 	unique_ptr<Iterator<int32_t>> getIdIterator() override;
 	unique_ptr<TransactionsWriter> getWriter() override;

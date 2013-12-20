@@ -11,6 +11,7 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
+#include <memory>
 #include <iterator>
 using namespace std;
 
@@ -40,6 +41,12 @@ public:
 	  oss << " ]";
 
 	  return string(oss.str());
+	}
+
+	template <class T>
+	static shared_ptr<T> unique_to_shared(unique_ptr<T> up) {
+		// release the ownership, then make it shared
+		return shared_ptr<T>(up.release());
 	}
 };
 

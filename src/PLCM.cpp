@@ -32,6 +32,9 @@ PLCM::PLCM(struct Options *options) {
 	createThreads(nbThreads);
 	progressWatch = unique_ptr<ProgressWatcherThread>(
 			new ProgressWatcherThread());
+	for (uint i = 0; i < PLCMCounters::Number_of_PLCMCounters; ++i) {
+				globalCounters[i] = 0;
+	}
 }
 
 PLCM::~PLCM() {
@@ -80,7 +83,7 @@ void PLCM::display(ostream& stream,
 		}
 	}
 
-	stream << "}";
+	stream << "}" << endl;
 }
 
 int64_t PLCM::closeCollector() {
@@ -262,12 +265,14 @@ unique_ptr<PatternsCollector> PLCM::instanciateCollector(PLCM::Options *options)
 }
 
 PLCMThread::PLCMThread(PLCM* PLCM_instance) {
-	_thread = 0;
 	stackedJobs = unique_ptr<deque<shared_ptr<ExplorationStep> > >(
 			new deque<shared_ptr<ExplorationStep> >());
 	_PLCM_instance = PLCM_instance;
 	should_start = false; // wait for the signal
 	_thread = unique_ptr<thread>(new thread(&PLCMThread::run, this));
+	for (uint i = 0; i < PLCM::PLCMCounters::Number_of_PLCMCounters; ++i) {
+		counters[i] = 0;
+	}
 }
 
 thread::id PLCMThread::getId() {
@@ -278,7 +283,10 @@ void PLCMThread::run() {
 	// 1st, wait for the start condition
 	{
 		unique_lock<mutex> ul(_mutex);
-		cond_should_start.wait(ul, [=] { return should_start; });
+		while (!should_start)	// handle spurious wake-ups
+		{
+			cond_should_start.wait(ul);
+		}
 	}
 
 	// no need to readlock, this thread is the only one that can do
@@ -343,7 +351,7 @@ shared_ptr<ExplorationStep> PLCMThread::giveJob(PLCMThread* thief) {
 	lock_guard<mutex> lg(_mutex);
 	for (uint32_t stealPos = 0; stealPos < stackedJobs->size(); stealPos++) {
 		shared_ptr<ExplorationStep> sj = stackedJobs->at(stealPos);
-		shared_ptr<ExplorationStep> next(sj->next().get());
+		shared_ptr<ExplorationStep> next = Helpers::unique_to_shared(sj->next());
 
 		if (next != nullptr) {
 			thief->init(sj);
