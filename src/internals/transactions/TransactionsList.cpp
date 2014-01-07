@@ -25,6 +25,7 @@ void TransactionsList::compress(int32_t prefixEnd) {
 	unique_ptr<ReusableTransactionIterator> it1 = getIterator();
 	unique_ptr<ReusableTransactionIterator> it2 = getIterator();
 	sort(sortList, 0, sortList->size(), it1.get(), it2.get(), prefixEnd);
+	delete sortList;
 }
 
 /**
