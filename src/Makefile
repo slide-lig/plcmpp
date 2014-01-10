@@ -1,7 +1,7 @@
 CXX=g++
 RM=rm -f
 CPPFLAGS=-I. -O0 -g3 -Wall -c -fmessage-length=0 -std=gnu++11 -pthread -march=native
-LDFLAGS=-g 
+LDFLAGS=-g -pthread
 LDLIBS=
 
 SRCS=$(shell find . -iname '*.cpp')
