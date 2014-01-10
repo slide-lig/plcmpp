@@ -1,8 +1,20 @@
+
+# Set DEBUG to 0 for better optimization
+DEBUG=0
+
 CXX=g++
 RM=rm -f
-CPPFLAGS=-I. -O0 -g3 -Wall -c -fmessage-length=0 -std=gnu++11 -pthread -march=native
-LDFLAGS=-g -pthread
+CPPFLAGS=-I. -Wall -c -fmessage-length=0 -std=gnu++11 -pthread -march=native
+LDFLAGS=-std=gnu++11 -pthread -march=native
 LDLIBS=
+
+ifeq ($(DEBUG),1)
+	CPPFLAGS += -g3 -O0
+	LDFLAGS += -g
+else
+	CPPFLAGS += -O3
+endif
+
 
 SRCS=$(shell find . -iname '*.cpp')
 OBJS=$(subst .cpp,.o,$(SRCS))
