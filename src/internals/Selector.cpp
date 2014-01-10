@@ -38,7 +38,7 @@ bool Selector::List::select(int32_t extension, ExplorationStep* state)
 {
 	for (auto it = this->begin(); it != this->end(); ++it)
 	{
-		if (!(*it)->allowExploration(extension, state))
+		if (!(*it)->select(extension, state))
 		{
 			return false;
 		}
