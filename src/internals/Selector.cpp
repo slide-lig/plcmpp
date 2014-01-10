@@ -6,7 +6,8 @@ namespace internals {
 Selector::~Selector() {
 }
 
-bool Selector::select(int32_t extension, ExplorationStep* state) {
+bool Selector::select(int32_t extension, ExplorationStep* state)
+		throw (Selector::WrongFirstParentException) {
 	if (allowExploration(extension, state)) {
 		return true;
 	} else {
@@ -35,6 +36,7 @@ unique_ptr<Selector::List> Selector::List::copy() {
 }
 
 bool Selector::List::select(int32_t extension, ExplorationStep* state)
+	throw (Selector::WrongFirstParentException)
 {
 	for (auto it = this->begin(); it != this->end(); ++it)
 	{

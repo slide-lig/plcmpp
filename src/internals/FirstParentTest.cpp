@@ -44,7 +44,8 @@ bool FirstParentTest::isAincludedInB(
  * returns true or throws a WrongFirstParentException
  */
 bool FirstParentTest::allowExploration(int32_t extension,
-		ExplorationStep* state) {
+		ExplorationStep* state) throw (Selector::WrongFirstParentException)
+{
 	shp_vec_int32 supportCounts = state->counters->supportCounts;
 	Dataset* d = state->dataset.get();
 
@@ -59,7 +60,7 @@ bool FirstParentTest::allowExploration(int32_t extension,
 			if (isAincludedInB(*candidateOccurrences, *iOccurrences)) {
 				PLCM::getCurrentThread()->counters[
 				            PLCM::PLCMCounters::FirstParentTestRejections]++;
-				throw new WrongFirstParentException(extension, i);
+				throw Selector::WrongFirstParentException(extension, i);
 			}
 		}
 	}

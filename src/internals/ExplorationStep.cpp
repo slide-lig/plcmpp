@@ -151,7 +151,7 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 				}
 
 				if (greatest > candidate) {
-					throw new Selector::WrongFirstParentException(candidate, greatest);
+					throw Selector::WrongFirstParentException(candidate, greatest);
 				}
 
 				// instanciateDataset may choose to compress renaming - if

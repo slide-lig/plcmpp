@@ -19,7 +19,8 @@ protected:
 	PLCM::PLCMCounters getCountersKey() override;
 
     unique_ptr<Selector> copy() override;
-    bool allowExploration(int32_t extension, ExplorationStep* state) /* throws(WrongFirstParentException) */ override;
+    bool allowExploration(int32_t extension, ExplorationStep* state)
+    		throw (Selector::WrongFirstParentException) override;
 
 private:
     bool isAincludedInB(Iterator<int32_t>& aIt,
