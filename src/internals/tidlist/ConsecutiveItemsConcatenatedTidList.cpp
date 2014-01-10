@@ -38,6 +38,10 @@ ConsecutiveItemsConcatenatedTidList::ConsecutiveItemsConcatenatedTidList(
 	_storage_size = other._storage_size;
 }
 
+ConsecutiveItemsConcatenatedTidList::~ConsecutiveItemsConcatenatedTidList() {
+	delete _indexAndFreqs;
+}
+
 unique_ptr<Iterator<int32_t> > ConsecutiveItemsConcatenatedTidList::get(
 		int32_t item) {
 	uint32_t itemIndex = item << 1;

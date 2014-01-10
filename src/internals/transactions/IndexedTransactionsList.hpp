@@ -25,6 +25,7 @@ protected:
 
 public:
 	IndexedTransactionsList(int32_t nbTransactions);
+	~IndexedTransactionsList();
 
 	void positionIterator(int32_t transaction,
 			IndexedReusableIterator *iter);

@@ -25,6 +25,8 @@ public:
     ConsecutiveItemsConcatenatedTidList(
     		const ConsecutiveItemsConcatenatedTidList& other);
 
+    ~ConsecutiveItemsConcatenatedTidList();
+
     unique_ptr<Iterator<int32_t> > get(int32_t item) override;
     unique_ptr<TidList::TIntIterable> getIterable(int32_t item) override;
     void addTransaction(int32_t item, int32_t transaction) override;

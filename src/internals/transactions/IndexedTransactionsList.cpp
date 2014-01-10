@@ -24,6 +24,10 @@ IndexedTransactionsList::IndexedTransactionsList(
 	_indexAndFreqs = new vector<int32_t>(*(other._indexAndFreqs));
 }
 
+IndexedTransactionsList::~IndexedTransactionsList() {
+	delete _indexAndFreqs;
+}
+
 void IndexedTransactionsList::positionIterator(
 		int32_t transaction, IndexedReusableIterator* iter) {
 
