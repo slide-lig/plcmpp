@@ -17,6 +17,14 @@ MemoryPeakWatcherThread::~MemoryPeakWatcherThread() {
 }
 
 void MemoryPeakWatcherThread::onPoll(bool timeout) {
+	updatePeak();
+}
+
+void MemoryPeakWatcherThread::onInit() {
+	updatePeak();
+}
+
+void MemoryPeakWatcherThread::updatePeak() {
 	getrusage(RUSAGE_SELF, &rusage_holder);
 	if (rusage_holder.ru_maxrss > maxUsedMemory)
 	{

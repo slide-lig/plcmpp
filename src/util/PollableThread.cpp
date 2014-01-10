@@ -12,6 +12,7 @@ using std::chrono::milliseconds;
 
 static char POLL_REQUEST = 'P';
 static char INTERRUPT_REQUEST = 'I';
+static char POLL_TIMEOUT = 'T';
 
 namespace util {
 
@@ -30,6 +31,9 @@ PollableThread::~PollableThread() {
 }
 
 int PollableThread::run() {
+
+	onInit();
+
 	while (true)
 	{
 		char request;
@@ -40,18 +44,25 @@ int PollableThread::run() {
 			unique_lock<mutex> ul(_mutex);
 			_queue_cond_var.wait_until(ul, timeout_date,
 					[=] { return !_queue.empty();} );
-			request = _queue.front();
-			_queue.pop();
+			if (_queue.empty())
+			{
+				request = POLL_TIMEOUT;
+			}
+			else
+			{
+				request = _queue.front();
+				_queue.pop();
+			}
 		}
 
-		if (request == POLL_REQUEST)
+		if (request == INTERRUPT_REQUEST)
 		{
-			onPoll(false);
-		}
-		else
-		{ 	// INTERRUPT_REQUEST
 			cout << "Thread got interruption request." << endl;
 			break;
+		}
+		else
+		{	// POLL_REQUEST or POLL_TIMEOUT
+			onPoll(request == POLL_TIMEOUT);
 		}
 	}
 
@@ -82,5 +93,8 @@ void PollableThread::poll() {
 	sendToThread(POLL_REQUEST);
 }
 
+void PollableThread::onInit() {
+	// default is to do nothing
 }
 
+}

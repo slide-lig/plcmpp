@@ -22,6 +22,7 @@ private:
 	int run();
 
 protected:
+	virtual void onInit();
 	virtual void onPoll(bool timeout) = 0;
 	void sendToThread(char c);
 

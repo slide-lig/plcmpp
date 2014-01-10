@@ -15,7 +15,9 @@ protected:
 
 private:
 	static const long CHECK_DELAY;
-	void onPoll(bool timeout);
+	void onInit() override;
+	void onPoll(bool timeout) override;
+	void updatePeak();
 
 public:
 	MemoryPeakWatcherThread();
