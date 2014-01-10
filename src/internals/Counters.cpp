@@ -149,6 +149,8 @@ Counters::Counters(int32_t minimumSupport,
 		} // otherwise item is infrequent : its renaming is already -1, ciao
 	}
 
+	delete supportsMap;
+
 	closure.reset(new_closure);
 	nbFrequents = renamingHeap.size();
 	maxFrequent = nbFrequents - 1;
@@ -181,8 +183,6 @@ Counters::Counters(int32_t minimumSupport,
 
 	compactedArrays = true;
 	distinctTransactionLengthSum = remainingSupportsSum;
-
-	delete supportsMap;
 }
 
 Counters::Counters(const Counters& other) {
