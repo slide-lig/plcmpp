@@ -22,6 +22,7 @@ public:
 			int32_t nbTransactions);
 	Template_IndexedTransactionsList(
 			const Template_IndexedTransactionsList& other);
+	~Template_IndexedTransactionsList();
 
 	unique_ptr<ReusableTransactionIterator> getIterator() override;
 	unique_ptr<TransactionsList> clone() override;

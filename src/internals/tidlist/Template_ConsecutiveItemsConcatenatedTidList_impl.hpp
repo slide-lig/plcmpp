@@ -25,6 +25,12 @@ Template_ConsecutiveItemsConcatenatedTidList<T>::Template_ConsecutiveItemsConcat
 }
 
 template <class T>
+Template_ConsecutiveItemsConcatenatedTidList<T>::~Template_ConsecutiveItemsConcatenatedTidList()
+{
+	delete _array;
+}
+
+template <class T>
 unique_ptr<TidList> Template_ConsecutiveItemsConcatenatedTidList<T>::clone() {
 	// create a clone using the copy constructor
 	Template_ConsecutiveItemsConcatenatedTidList<T> *cloned = new

@@ -25,6 +25,9 @@ public:
     Template_ConsecutiveItemsConcatenatedTidList(
     		const Template_ConsecutiveItemsConcatenatedTidList<T>& other);
 
+    ~Template_ConsecutiveItemsConcatenatedTidList();
+
+
     unique_ptr<TidList> clone() override;
     int32_t read(int32_t position) override;
 

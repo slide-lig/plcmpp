@@ -35,6 +35,12 @@ Template_IndexedTransactionsList<T>::Template_IndexedTransactionsList(
 }
 
 template <class T>
+Template_IndexedTransactionsList<T>::~Template_IndexedTransactionsList()
+{
+	delete _concatenated;
+}
+
+template <class T>
 unique_ptr<ReusableTransactionIterator> Template_IndexedTransactionsList<T>::getIterator() {
 	return unique_ptr<ReusableTransactionIterator>(
 			new Template_TransIter<T>(this, _concatenated));
