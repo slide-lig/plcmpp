@@ -42,6 +42,8 @@ Counters::Counters(
 	supportCounts = make_p_vec_int32(maxItem + 1);
 	distinctTransactionsCounts = make_p_vec_int32(maxItem + 1);
 	reverseRenaming = nullptr;
+	auto opt_supportCounts = supportCounts.get();
+	auto opt_distinctTransactionsCounts = distinctTransactionsCounts.get();
 
 	// item support and transactions counting
 
@@ -59,8 +61,8 @@ Counters::Counters(
 			while (transaction->hasNext()) {
 				int item = transaction->next();
 				if (item <= maxItem) {
-					(*supportCounts)[item] += weight;
-					(*distinctTransactionsCounts)[item]++;
+					(*opt_supportCounts)[item] += weight;
+					(*opt_distinctTransactionsCounts)[item]++;
 				}
 			}
 		}
@@ -70,8 +72,8 @@ Counters::Counters(
 	distinctTransactionsCount = transactionsCount;
 
 	// ignored items
-	(*supportCounts)[extension] = 0;
-	(*distinctTransactionsCounts)[extension] = 0;
+	(*opt_supportCounts)[extension] = 0;
+	(*opt_distinctTransactionsCounts)[extension] = 0;
 	maxCandidate = extension;
 
 	// item filtering and final computations : some are infrequent, some
@@ -82,18 +84,28 @@ Counters::Counters(
 	uint32_t remainingFrequents = 0;
 	uint32_t biggestItemID = 0;
 
-	for (uint32_t i = 0; i < supportCounts->size(); i++) {
-		if ((*supportCounts)[i] < minimumSupport) {
-			(*supportCounts)[i] = 0;
-			(*distinctTransactionsCounts)[i] = 0;
-		} else if ((*supportCounts)[i] == transactionsCount) {
+	auto it_supportCounts_end = opt_supportCounts->end();
+	auto it_supportCounts = opt_supportCounts->begin();
+	auto it_distinctTransactionsCounts =
+			opt_distinctTransactionsCounts->begin();
+	uint32_t i;
+
+	for (i = 0;
+		 it_supportCounts != it_supportCounts_end;
+		 ++it_supportCounts, ++i, ++it_distinctTransactionsCounts)
+	{
+		int32_t& ref_supportCount = *it_supportCounts;
+		if (ref_supportCount < minimumSupport) {
+			ref_supportCount = 0;
+			(*it_distinctTransactionsCounts) = 0;
+		} else if (ref_supportCount == transactionsCount) {
 			new_closure->push_back(i);
-			(*supportCounts)[i] = 0;
-			(*distinctTransactionsCounts)[i] = 0;
+			ref_supportCount = 0;
+			(*it_distinctTransactionsCounts) = 0;
 		} else {
 			biggestItemID = max(biggestItemID, i);
 			remainingFrequents++;
-			remainingDistinctTransLengths += (*distinctTransactionsCounts)[i];
+			remainingDistinctTransLengths += (*it_distinctTransactionsCounts);
 		}
 	}
 
