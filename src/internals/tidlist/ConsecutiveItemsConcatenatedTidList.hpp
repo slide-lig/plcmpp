@@ -4,6 +4,9 @@
 
 #include <internals/tidlist/TidList.hpp>
 #include <internals/Counters.hpp>
+#include <util/shortcuts.h>
+
+using util::p_array_int32;
 
 namespace internals {
 namespace tidlist {
@@ -13,7 +16,7 @@ class ConsecutiveItemsConcatenatedTidList
 {
 
 private:
-    vector<int32_t>* _indexAndFreqs;
+    p_array_int32 _indexAndFreqs;
 protected:
     uint32_t _storage_size;
 
@@ -21,7 +24,7 @@ public:
     ConsecutiveItemsConcatenatedTidList(
     		Counters* c, int32_t highestTidList);
     ConsecutiveItemsConcatenatedTidList(
-    		vector<int32_t>* lengths, int32_t highestTidList);
+    		p_array_int32 lengths, int32_t highestTidList);
     ConsecutiveItemsConcatenatedTidList(
     		const ConsecutiveItemsConcatenatedTidList& other);
 

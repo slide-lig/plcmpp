@@ -2,8 +2,11 @@
 
 #include <internals/TransactionReader.hpp>
 #include <util/Iterator.hpp>
+#include <util/shortcuts.h>
+
 
 using util::Iterator;
+using util::p_array_int32;
 using internals::TransactionReader;
 
 namespace io {
@@ -66,13 +69,13 @@ private:
 			vector<int32_t>::iterator current_trans_current_item;
 			vector<int32_t>::iterator current_trans_end_items;
 			Storage *_storage;
-			vector<int32_t> *_renaming;
+			p_array_int32 _renaming;
 
 		/**
 		 * read currentPage[currentPageIndex, to[
 		 */
 		public:
-			CopyReader(Storage *storage, vector<int32_t> *renaming);
+			CopyReader(Storage *storage, p_array_int32 renaming);
 
 			int getTransactionSupport() override;
 			int next() override;
@@ -109,7 +112,7 @@ private:
 	    FileReader(string& path);
 	    ~FileReader();
 
-		void close(vector<int32_t>* renamingMap);
+		void close(p_array_int32 renamingMap);
 
 		bool hasNext();
 		internals::TransactionReader* next();

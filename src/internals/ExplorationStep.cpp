@@ -64,7 +64,7 @@ ExplorationStep::ExplorationStep(ExplorationStep* parent,
 		TransactionsIterable* support) {
 	core_item = extension;
 	counters = move(candidateCounts); // get ownership
-	shp_vec_int32 reverseRenaming = parent->counters->getReverseRenaming();
+	shp_array_int32 reverseRenaming = parent->counters->getReverseRenaming();
 
 	if (verbose) {
 		if (parent->pattern->size() == 0 || ultraVerbose) {
@@ -175,7 +175,7 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 
 unique_ptr<Dataset> ExplorationStep::instanciateDataset(ExplorationStep* parent,
 		TransactionsIterable* support) {
-	shp_vec_int32 renaming = counters->compressRenaming(
+	shp_array_int32 renaming = counters->compressRenaming(
 				parent->counters->getReverseRenaming());
 	auto it = support->iterator();
 

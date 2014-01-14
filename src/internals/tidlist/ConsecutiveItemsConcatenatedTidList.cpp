@@ -6,6 +6,8 @@ using namespace std;
 #include <internals/tidlist/ConsecutiveItemsConcatenatedTidList.hpp>
 #include <internals/Counters.hpp>
 
+using util::array_int32;
+
 namespace internals {
 namespace tidlist {
 
@@ -16,10 +18,10 @@ ConsecutiveItemsConcatenatedTidList::ConsecutiveItemsConcatenatedTidList(
 }
 
 ConsecutiveItemsConcatenatedTidList::ConsecutiveItemsConcatenatedTidList(
-		vector<int32_t>* lengths, int32_t highestTidList) {
+		p_array_int32 lengths, int32_t highestTidList) {
 	int32_t startPos = 0;
 	int32_t top = min(highestTidList, (int32_t)lengths->size());
-	_indexAndFreqs = new vector<int32_t>(top * 2);
+	_indexAndFreqs = new array_int32(top * 2);
 	for (int32_t i = 0; i < top; i++) {
 		int32_t itemIndex = i << 1;
 		if ((*lengths)[i] > 0) {
@@ -34,7 +36,7 @@ ConsecutiveItemsConcatenatedTidList::ConsecutiveItemsConcatenatedTidList(
 
 ConsecutiveItemsConcatenatedTidList::ConsecutiveItemsConcatenatedTidList(
 		const ConsecutiveItemsConcatenatedTidList& other) {
-	_indexAndFreqs = new vector<int32_t>(*(other._indexAndFreqs));
+	_indexAndFreqs = new array_int32(*(other._indexAndFreqs));
 	_storage_size = other._storage_size;
 }
 

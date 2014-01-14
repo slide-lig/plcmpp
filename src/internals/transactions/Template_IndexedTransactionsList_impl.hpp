@@ -24,14 +24,14 @@ Template_IndexedTransactionsList<T>::Template_IndexedTransactionsList(
 		int32_t transactionsLength, int32_t nbTransactions) :
 		IndexedTransactionsList(nbTransactions)
 {
-	_concatenated = new vector<T>(transactionsLength);
+	_concatenated = new RawArray<T>(transactionsLength);
 }
 
 template <class T>
 Template_IndexedTransactionsList<T>::Template_IndexedTransactionsList(
 		const Template_IndexedTransactionsList<T>& other) :
 				IndexedTransactionsList(other) {
-	_concatenated = new vector<T>(*(other._concatenated));
+	_concatenated = new RawArray<T>(*(other._concatenated));
 }
 
 template <class T>
@@ -82,7 +82,7 @@ void Template_IndexedTransactionsList<T>::writeItem(
 template <class T>
 Template_TransIter<T>::Template_TransIter(
 			IndexedTransactionsList *tlist,
-			vector<T>* concatenated) :
+			RawArray<T>* concatenated) :
 		BasicTransIter(tlist) {
 	_concatenated = concatenated;
 }

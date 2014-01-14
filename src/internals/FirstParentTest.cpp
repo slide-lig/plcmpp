@@ -46,7 +46,7 @@ bool FirstParentTest::isAincludedInB(
 bool FirstParentTest::allowExploration(int32_t extension,
 		ExplorationStep* state) throw (Selector::WrongFirstParentException)
 {
-	shp_vec_int32 supportCounts = state->counters->supportCounts;
+	shp_array_int32 supportCounts = state->counters->supportCounts;
 	Dataset* d = state->dataset.get();
 
 	int32_t candidateSupport = (*supportCounts)[extension];

@@ -2,7 +2,7 @@
 #include <internals/FrequentsIteratorRenamer.hpp>
 
 internals::FrequentsIteratorRenamer::FrequentsIteratorRenamer(
-		FrequentsIterator* decorated, vector<int32_t>* itemsRenaming) {
+		FrequentsIterator* decorated, p_array_int32 itemsRenaming) {
 	_renaming = itemsRenaming;
 	_wrapped = decorated;
 }

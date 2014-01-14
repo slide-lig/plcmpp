@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include <vector>
-using namespace std;
-
 #include <internals/tidlist/ConsecutiveItemsConcatenatedTidList.hpp>
+#include <util/RawArray.hpp>
+
+using util::RawArray;
 
 namespace internals {
 namespace tidlist {
@@ -17,7 +17,7 @@ class Template_ConsecutiveItemsConcatenatedTidList
 
 private:
 	static const T MAX_VALUE;
-    vector<T>* _array;
+    RawArray<T>* _array;
 
 public:
     Template_ConsecutiveItemsConcatenatedTidList(

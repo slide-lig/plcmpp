@@ -2,8 +2,9 @@
 
 #include <cstdint>
 #include <vector>
-
 using namespace std;
+
+#include "util/shortcuts.h"
 
 namespace util {
 
@@ -15,7 +16,7 @@ namespace util {
 class ItemsetsFactory
 {
 public:
-    static void extendRename(vector<int32_t>& closure, int32_t extension, vector<int32_t>& pattern, vector<int32_t>& renaming, vector<int32_t>& result);
+    static void extendRename(vector<int32_t>& closure, int32_t extension, vector<int32_t>& pattern, array_int32& renaming, vector<int32_t>& result);
 };
 
 }

@@ -10,7 +10,7 @@ namespace transactions {
 // constructor
 IndexedTransactionsList::IndexedTransactionsList(
 		int32_t nbTransactions) {
-	_indexAndFreqs = new vector<int32_t>(nbTransactions << 1, -1);
+	_indexAndFreqs = new array_int32(nbTransactions << 1, -1);
 	_size = 0;
 	writeIndex = 0;
 }
@@ -21,7 +21,7 @@ IndexedTransactionsList::IndexedTransactionsList(
 {
 	_size = other._size;
 	writeIndex = other.writeIndex;
-	_indexAndFreqs = new vector<int32_t>(*(other._indexAndFreqs));
+	_indexAndFreqs = new array_int32(*(other._indexAndFreqs));
 }
 
 IndexedTransactionsList::~IndexedTransactionsList() {

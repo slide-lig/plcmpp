@@ -31,6 +31,16 @@ shp_vec_int32 make_p_vec_int32(uint32_t size, int32_t init_value)
 	return make_shared<vec_int32>(size, init_value);
 }
 
+shp_array_int32 make_p_array_int32(uint32_t size)
+{
+	return make_shared<array_int32>(size);
+}
+
+shp_array_int32 make_p_array_int32(uint32_t size, int32_t init_value)
+{
+	return make_shared<array_int32>(size, init_value);
+}
+
 Counters::Counters(
 		int32_t minimumSupport,
 		Iterator<TransactionReader*>* transactions,
@@ -39,8 +49,8 @@ Counters::Counters(
 
 	renaming = nullptr;
 	minSupport = minimumSupport;
-	supportCounts = make_p_vec_int32(maxItem + 1);
-	distinctTransactionsCounts = make_p_vec_int32(maxItem + 1);
+	supportCounts = make_p_array_int32(maxItem + 1);
+	distinctTransactionsCounts = make_p_array_int32(maxItem + 1);
 	reverseRenaming = nullptr;
 	auto opt_supportCounts = supportCounts.get();
 	auto opt_distinctTransactionsCounts = distinctTransactionsCounts.get();
@@ -142,7 +152,7 @@ Counters::Counters(int32_t minimumSupport,
 
 	transactionsCount = transactionsCounter;
 	distinctTransactionsCount = transactionsCounter;
-	renaming = make_p_vec_int32(biggestItemID + 1, -1);
+	renaming = make_p_array_int32(biggestItemID + 1, -1);
 
 	// item filtering and final computations : some are infrequent, some
 	// belong to closure
@@ -168,9 +178,9 @@ Counters::Counters(int32_t minimumSupport,
 	maxFrequent = nbFrequents - 1;
 	maxCandidate = maxFrequent + 1;
 
-	supportCounts = make_p_vec_int32(nbFrequents);
-	distinctTransactionsCounts = make_p_vec_int32(nbFrequents);
-	reverseRenaming = make_p_vec_int32(nbFrequents);
+	supportCounts = make_p_array_int32(nbFrequents);
+	distinctTransactionsCounts = make_p_array_int32(nbFrequents);
+	reverseRenaming = make_p_array_int32(nbFrequents);
 	int remainingSupportsSum = 0;
 
 	int newItemID = 0;
@@ -229,11 +239,11 @@ int32_t Counters::getMaxFrequent() {
 	return maxFrequent;
 }
 
-shp_vec_int32 Counters::getRenaming() {
+shp_array_int32 Counters::getRenaming() {
 	return renaming;
 }
 
-shp_vec_int32 Counters::getReverseRenaming() {
+shp_array_int32 Counters::getReverseRenaming() {
 	return reverseRenaming;
 }
 
@@ -241,17 +251,17 @@ shp_vec_int32 Counters::getClosure() {
 	return closure;
 }
 
-void Counters::reuseRenaming(shp_vec_int32 olderReverseRenaming) {
+void Counters::reuseRenaming(shp_array_int32 olderReverseRenaming) {
 	reverseRenaming = olderReverseRenaming;
 }
 
-shp_vec_int32 Counters::compressRenaming(
-		shp_vec_int32 olderReverseRenaming) {
+shp_array_int32 Counters::compressRenaming(
+		shp_array_int32 olderReverseRenaming) {
 
 	auto new_renaming_size =
 			max(olderReverseRenaming->size(), supportCounts->size());
-	auto new_renaming = make_p_vec_int32(new_renaming_size);
-	reverseRenaming = make_p_vec_int32(nbFrequents);
+	auto new_renaming = make_p_array_int32(new_renaming_size);
+	reverseRenaming = make_p_array_int32(nbFrequents);
 
 	// we will always have newItemID <= item
 	int newItemID = 0;

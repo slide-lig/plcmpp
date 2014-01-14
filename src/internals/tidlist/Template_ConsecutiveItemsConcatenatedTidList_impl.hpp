@@ -14,14 +14,14 @@ template <class T>
 Template_ConsecutiveItemsConcatenatedTidList<T>::Template_ConsecutiveItemsConcatenatedTidList(
 		Counters* c, int32_t highestItem) : ConsecutiveItemsConcatenatedTidList(
 				c, highestItem) {
-	_array = new vector<T>(_storage_size);
+	_array = new RawArray<T>(_storage_size);
 }
 
 template <class T>
 Template_ConsecutiveItemsConcatenatedTidList<T>::Template_ConsecutiveItemsConcatenatedTidList(
 		const Template_ConsecutiveItemsConcatenatedTidList<T>& other) :
 		ConsecutiveItemsConcatenatedTidList(other) {
-	_array = new vector<T>(*(other._array));
+	_array = new RawArray<T>(*(other._array));
 }
 
 template <class T>

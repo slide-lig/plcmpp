@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include <vector>
 #include <memory>
 #include <atomic>
 using namespace std;
@@ -63,7 +62,7 @@ public:
 	 *
 	 * Indexes above maxFrequent should be considered valid.
 	 */
-    shp_vec_int32 supportCounts;
+    shp_array_int32 supportCounts;
 
 	/**
 	 * For each item having a support count in [minSupport; 100% [ , gives how
@@ -72,7 +71,7 @@ public:
 	 *
 	 * Indexes above maxFrequent should be considered valid.
 	 */
-    shp_vec_int32 distinctTransactionsCounts;
+    shp_array_int32 distinctTransactionsCounts;
 
 	/**
 	 * Counts how many items have a support count in [minSupport; 100% [
@@ -107,7 +106,7 @@ protected:
 	 * - reuseRenaming, the initial dataset's constructor (which also sets "renaming")
 	 * - compressRenaming, useful when recompacting dataset in recursions
 	 */
-    shp_vec_int32 reverseRenaming;
+    shp_array_int32 reverseRenaming;
 
 	/**
 	 * This field will be null EXCEPT if you're using the initial dataset's
@@ -117,7 +116,7 @@ protected:
 	 * It gives, for each original item ID, its new identifier. If it's negative
 	 * it means the item should be filtered.
 	 */
-    shp_vec_int32 renaming;
+    shp_array_int32 renaming;
 
 	/**
 	 * Exclusive index of the first item >= core_item in current base
@@ -176,7 +175,7 @@ public:
 	/**
 	 * @return the renaming map from instantiation's base to current base
 	 */
-	shp_vec_int32 getRenaming();
+	shp_array_int32 getRenaming();
 
 	/**
 	 * @return the closure
@@ -186,9 +185,9 @@ public:
 	/**
 	 * @return a translation from internal item indexes to dataset's original indexes
 	 */
-	shp_vec_int32 getReverseRenaming();
+	shp_array_int32 getReverseRenaming();
 
-    void reuseRenaming(shp_vec_int32 olderReverseRenaming);
+    void reuseRenaming(shp_array_int32 olderReverseRenaming);
 
 	/**
 	 * Will compress an older renaming, by removing infrequent items. Contained
@@ -199,7 +198,7 @@ public:
 	 * @return the translation from the old renaming to the compressed one
 	 *         (gives -1 for removed items)
 	 */
-	shp_vec_int32 compressRenaming(shp_vec_int32 olderReverseRenaming);
+	shp_array_int32 compressRenaming(shp_array_int32 olderReverseRenaming);
 
     int32_t getMaxCandidate();
 
@@ -249,7 +248,7 @@ class FrequentIterator : public FrequentsIterator
 private:
     int32_t index;
     int32_t max;
-    shp_vec_int32 supportsFilter;
+    shp_array_int32 supportsFilter;
 
 public:
     FrequentIterator();

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <internals/transactions/IndexedTransactionsList.hpp>
+#include <util/RawArray.hpp>
+
+using util::RawArray;
 
 namespace internals {
 
@@ -12,7 +15,7 @@ template <class T>
 class Template_IndexedTransactionsList: public IndexedTransactionsList {
 
 private:
-	vector<T>* _concatenated;
+	RawArray<T>* _concatenated;
 
 public:
 	static const T MAX_VALUE;
@@ -37,12 +40,12 @@ protected:
 template <class T>
 class Template_TransIter: public BasicTransIter {
 private:
-	vector<T>* _concatenated;
+	RawArray<T>* _concatenated;
 
 public:
 	Template_TransIter(
 			IndexedTransactionsList *tlist,
-			vector<T>* concatenated);
+			RawArray<T>* concatenated);
 protected:
 	bool isNextPosValid() override;
 	void removePosVal() override;

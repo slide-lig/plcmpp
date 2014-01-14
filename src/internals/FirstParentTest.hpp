@@ -7,9 +7,6 @@
 #include <PLCM.hpp>
 using util::Iterator;
 
-#include <vector>
-using namespace std;
-
 namespace internals {
 
 class FirstParentTest : public Selector

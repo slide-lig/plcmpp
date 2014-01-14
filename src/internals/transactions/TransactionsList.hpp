@@ -1,12 +1,12 @@
 
 #pragma once
 
-#include <vector>
 #include <memory>
 using namespace std;
 #include "internals/transactions/ReusableTransactionIterator.hpp"
 #include "internals/transactions/TransactionsWriter.hpp"
 #include "util/Iterator.hpp"
+#include "util/shortcuts.h"
 using namespace util;
 
 namespace internals {
@@ -31,7 +31,7 @@ public:
     virtual void compress(int32_t prefixEnd);
 
 private:
-    static void sort(vector<int32_t>* array, int32_t start, int32_t end,
+    static void sort(p_array_int32 array, int32_t start, int32_t end,
     		ReusableTransactionIterator *it1,
     		ReusableTransactionIterator *it2,
     		int32_t prefixEnd);

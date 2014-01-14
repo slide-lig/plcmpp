@@ -24,7 +24,7 @@ bool FileReader::CopyReader::hasNext() {
 }
 
 FileReader::CopyReader::CopyReader(
-		Storage* storage, vector<int32_t> *renaming) {
+		Storage* storage, p_array_int32 renaming) {
 	_storage = storage;
 	_renaming = renaming;
 	next_trans_start = _storage->begin();
@@ -124,7 +124,7 @@ void FileReader::LineReader::prepareForNextTransaction() {
 	_storage->startNewTransaction();
 }
 
-void FileReader::close(vector<int32_t>* renamingMap) {
+void FileReader::close(p_array_int32 renamingMap) {
 	delete _reader;
 	_reader = new FileReader::CopyReader(_storage, renamingMap);
 }

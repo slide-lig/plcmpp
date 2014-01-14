@@ -5,6 +5,7 @@
 #include <internals/transactions/ReusableTransactionIterator.hpp>
 #include <internals/transactions/TransactionsWriter.hpp>
 #include <util/Iterator.hpp>
+#include <util/shortcuts.h>
 
 using namespace util;
 
@@ -16,7 +17,7 @@ class IndexedReusableIterator;
 class IndexedTransactionsList: public TransactionsList {
 
 private:
-	vector<int32_t>* _indexAndFreqs;
+	p_array_int32 _indexAndFreqs;
 	int32_t _size;
 
 protected:

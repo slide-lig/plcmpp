@@ -17,10 +17,11 @@ TransactionsList::~TransactionsList() {
 }
 
 void TransactionsList::compress(int32_t prefixEnd) {
-	vector<int32_t> *sortList = new vector<int32_t>(size());
+	p_array_int32 sortList = new array_int32(size());
 	unique_ptr<Iterator<int32_t> > idIter = getIdIterator();
-	for (uint32_t i = 0; i < sortList->size(); i++) {
-		(*sortList)[i] = idIter->next();
+	auto end = sortList->end();
+	for (auto it = sortList->begin(); it != end; it++) {
+		*it = idIter->next();
 	}
 	unique_ptr<ReusableTransactionIterator> it1 = getIterator();
 	unique_ptr<ReusableTransactionIterator> it2 = getIterator();
@@ -41,7 +42,7 @@ void TransactionsList::compress(int32_t prefixEnd) {
  * @param it2
  * @param prefixEnd
  */
-void TransactionsList::sort(vector<int32_t>* array, int32_t start, int32_t end,
+void TransactionsList::sort(p_array_int32 array, int32_t start, int32_t end,
     		ReusableTransactionIterator *it1,
     		ReusableTransactionIterator *it2,
     		int32_t prefixEnd) {
