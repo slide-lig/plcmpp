@@ -217,8 +217,14 @@ PLCMThread* PLCM::getCurrentThread() {
 }
 
 void PLCM::createThreads(int32_t nbThreads) {
+	cpu_set_t cpu_set;
+	sched_getaffinity(0, sizeof(cpu_set_t), &cpu_set);
+	int num_cpus = CPU_COUNT(&cpu_set);
+	int index_cpu;
+
 	for (int i = 0; i < nbThreads; i++) {
-		auto t = new PLCMThread(this);
+		index_cpu = i%num_cpus;
+		auto t = new PLCMThread(this, index_cpu);
 		(*threads)[t->getId()] = unique_ptr<PLCMThread>(t);
 	}
 }
@@ -264,10 +270,11 @@ unique_ptr<PatternsCollector> PLCM::instanciateCollector(PLCM::Options *options)
 	return unique_ptr<PatternsCollector>(collector);
 }
 
-PLCMThread::PLCMThread(PLCM* PLCM_instance) {
 	stackedJobs = unique_ptr<deque<shared_ptr<ExplorationStep> > >(
 			new deque<shared_ptr<ExplorationStep> >());
+PLCMThread::PLCMThread(PLCM* PLCM_instance, int index_cpu) {
 	_PLCM_instance = PLCM_instance;
+	_index_cpu = index_cpu;
 	should_start = false; // wait for the signal
 	_thread = unique_ptr<thread>(new thread(&PLCMThread::run, this));
 	for (uint i = 0; i < PLCM::PLCMCounters::Number_of_PLCMCounters; ++i) {
@@ -280,7 +287,14 @@ thread::id PLCMThread::getId() {
 }
 
 void PLCMThread::run() {
-	// 1st, wait for the start condition
+	// 1st, set the thread affinity
+	cpu_set_t cpu_set;
+	CPU_ZERO(&cpu_set);
+	CPU_SET(_index_cpu, &cpu_set);
+	sched_setaffinity(0, sizeof(cpu_set_t), &cpu_set);
+	cout << _index_cpu << endl;
+
+	// then, wait for the start condition
 	{
 		unique_lock<mutex> ul(_mutex);
 		while (!should_start)	// handle spurious wake-ups

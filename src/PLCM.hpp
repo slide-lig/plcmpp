@@ -101,12 +101,13 @@ protected:
     PLCM *_PLCM_instance;
     condition_variable cond_should_start;
     bool should_start;
+    int _index_cpu;
 
 public:
     uint64_t counters[PLCM::PLCMCounters::Number_of_PLCMCounters];
 
 public:
-    PLCMThread(PLCM *PLCM_instance);
+    PLCMThread(PLCM *PLCM_instance, int index_cpu);
     thread::id getId();
     void run();
     void join();
