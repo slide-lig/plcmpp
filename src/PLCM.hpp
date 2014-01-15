@@ -96,8 +96,10 @@ class PLCMThread
 {
 protected:
 	mutex _mutex;
-	unique_ptr<thread> _thread;
-    unique_ptr<deque<shared_ptr<ExplorationStep> > > stackedJobs;
+	unique_ptr<thread> _thread_storage;
+	thread *_thread;
+    unique_ptr<vector<shared_ptr<ExplorationStep> > > stackedJobs_storage;
+    vector<shared_ptr<ExplorationStep> > *stackedJobs;
     PLCM *_PLCM_instance;
     condition_variable cond_should_start;
     bool should_start;

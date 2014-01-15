@@ -270,13 +270,16 @@ unique_ptr<PatternsCollector> PLCM::instanciateCollector(PLCM::Options *options)
 	return unique_ptr<PatternsCollector>(collector);
 }
 
-	stackedJobs = unique_ptr<deque<shared_ptr<ExplorationStep> > >(
-			new deque<shared_ptr<ExplorationStep> >());
 PLCMThread::PLCMThread(PLCM* PLCM_instance, int index_cpu) {
+	stackedJobs = new vector<shared_ptr<ExplorationStep> >();
+	stackedJobs_storage = unique_ptr<vector<shared_ptr<ExplorationStep> > >(
+			stackedJobs); // auto delete
+
 	_PLCM_instance = PLCM_instance;
 	_index_cpu = index_cpu;
 	should_start = false; // wait for the signal
-	_thread = unique_ptr<thread>(new thread(&PLCMThread::run, this));
+	_thread = new thread(&PLCMThread::run, this);
+	_thread_storage = unique_ptr<thread>(_thread); // auto delete
 	for (uint i = 0; i < PLCM::PLCMCounters::Number_of_PLCMCounters; ++i) {
 		counters[i] = 0;
 	}
@@ -355,9 +358,10 @@ void PLCMThread::lcm(shared_ptr<ExplorationStep> state) {
 	_PLCM_instance->collect(
 			state->counters->transactionsCount,
 			state->pattern.get());
-
-	lock_guard<mutex> lg(_mutex);
-	stackedJobs->push_back(state);
+	{
+		lock_guard<mutex> lg(_mutex);
+		stackedJobs->push_back(state);
+	}
 }
 
 shared_ptr<ExplorationStep> PLCMThread::giveJob(PLCMThread* thief) {
