@@ -67,7 +67,6 @@ private:
 	 */
 	shared_ptr<map<int32_t, int32_t> > failedFPTests;
 	mutex failedFPTests_mutex;
-	mutex candidates_mutex;
 
 public:
 	/**

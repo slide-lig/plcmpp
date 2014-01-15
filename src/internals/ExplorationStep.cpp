@@ -122,11 +122,8 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 	}
 
 	while (true) {
-		int32_t candidate;
-		{
-			lock_guard<mutex> lg(candidates_mutex);
-			candidate = candidates->next();
-		}
+		int32_t candidate = candidates->next();
+
 		if (candidate < 0) {
 			return nullptr;
 		}
