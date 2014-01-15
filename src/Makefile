@@ -13,6 +13,7 @@ ifeq ($(DEBUG),1)
 	LDFLAGS += -g
 else
 	CPPFLAGS += -O3
+	LDFLAGS += -O3
 endif
 
 
