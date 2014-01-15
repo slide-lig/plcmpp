@@ -295,7 +295,6 @@ void PLCMThread::run() {
 	CPU_ZERO(&cpu_set);
 	CPU_SET(_index_cpu, &cpu_set);
 	sched_setaffinity(0, sizeof(cpu_set_t), &cpu_set);
-	cout << _index_cpu << endl;
 
 	// then, wait for the start condition
 	{
