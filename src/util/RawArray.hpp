@@ -22,7 +22,8 @@ public:
 	inline RawArray(uint32_t in_length, T init_value = 0) {
 		length = in_length;
 		array = new T[in_length];
-		for (auto it = begin(); it != end(); it++)
+		auto the_end = end();
+		for (auto it = begin(); it != the_end; it++)
 		{
 			*it = init_value;
 		}
