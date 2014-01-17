@@ -237,14 +237,36 @@ void PLCM::initializeAndStartThreads(shared_ptr<ExplorationStep> initState) {
 }
 
 shared_ptr<ExplorationStep> PLCM::stealJob(PLCMThread* thief) {
-	for (auto it = threads->begin(); it != threads->end(); ++it) {
-		auto victim = it->second.get();
-		if (victim != thief) {
-			auto e = victim->giveJob(thief);
-			if (e != nullptr) {
-				return e;
-			}
+
+	/* we try to avoid too much concurrency, with all thread trying
+	 * to steal jobs to the same victim.
+	 *
+	 * For example, thread 3 will preferably steal a job to thread 4,
+	 * or 5, or 6, ... or N, or 0, or 1, or 2.
+	 */
+
+	const thread::id thief_id = thief->getId();
+
+	// point to the thread following the thief
+	auto it = threads->begin();
+	for (; it->first != thief_id; ++it) { }
+	++it;
+
+	// the thief can steal a job to any thread except itself
+	size_t num_stealable_threads = threads->size() -1;
+
+	// try each thread pointed by it, in turn
+	for (size_t index = 0; index < num_stealable_threads; ++index) {
+		if (it == threads->end())
+			it = threads->begin();
+		auto job = it->second->giveJob(thief);
+		if (job != nullptr) {
+			//cout << "Job stolen: thread " << it->second->getId()
+			//		<< " to " << thief_id << endl;
+			return job;
 		}
+
+		++it;
 	}
 	return nullptr;
 }
