@@ -298,7 +298,7 @@ void PLCMThread::run() {
 
 	// then, wait for the start condition
 	{
-		unique_lock<mutex> ul(_mutex);
+		unique_lock<mutex> ul(starting_mutex);
 		while (!should_start)	// handle spurious wake-ups
 		{
 			cond_should_start.wait(ul);
@@ -316,7 +316,7 @@ void PLCMThread::run() {
 			unique_ptr<ExplorationStep> extended = sj->next();
 			// iterator is finished, remove it from the stack
 			if (extended == nullptr) {
-				lock_guard<mutex> lg(_mutex);
+				ReadWriteLock::WriteGuard lg(_lock);
 				stackedJobs->pop_back();
 				counters[PLCM::PLCMCounters::ExplorationStepInstances]++;
 				counters[PLCM::PLCMCounters::ExplorationStepCatchedWrongFirstParents] +=
@@ -337,7 +337,7 @@ void PLCMThread::run() {
 }
 
 void PLCMThread::init(shared_ptr<ExplorationStep> initState) {
-	lock_guard<mutex> lg(_mutex);
+	ReadWriteLock::WriteGuard lg(_lock);
 	stackedJobs->push_back(initState);
 }
 
@@ -347,7 +347,7 @@ void PLCMThread::join() {
 
 void PLCMThread::start() {
 	{
-		lock_guard<mutex> lg(_mutex);
+		lock_guard<mutex> lg(starting_mutex);
 		should_start = true;
 	}
 	cond_should_start.notify_one();
@@ -358,14 +358,14 @@ void PLCMThread::lcm(shared_ptr<ExplorationStep> state) {
 			state->counters->transactionsCount,
 			state->pattern.get());
 	{
-		lock_guard<mutex> lg(_mutex);
+		ReadWriteLock::WriteGuard lg(_lock);
 		stackedJobs->push_back(state);
 	}
 }
 
 shared_ptr<ExplorationStep> PLCMThread::giveJob(PLCMThread* thief) {
 	// here we need to readlock because the owner thread can write
-	lock_guard<mutex> lg(_mutex);
+	ReadWriteLock::ReadGuard lg(_lock);
 	for (uint32_t stealPos = 0; stealPos < stackedJobs->size(); stealPos++) {
 		shared_ptr<ExplorationStep> sj = stackedJobs->at(stealPos);
 		shared_ptr<ExplorationStep> next = Helpers::unique_to_shared(sj->next());

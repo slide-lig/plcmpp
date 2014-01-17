@@ -13,8 +13,10 @@ using namespace std;
 
 #include "io/PatternsCollector.hpp"
 #include "util/tclap/CmdLine.h"
+#include "util/ReadWriteLock.hpp"
 
 using io::PatternsCollector;
+using util::ReadWriteLock;
 
 class PLCMThread;
 
@@ -95,12 +97,13 @@ private:
 class PLCMThread
 {
 protected:
-	mutex _mutex;
+	ReadWriteLock _lock;
 	unique_ptr<thread> _thread_storage;
 	thread *_thread;
     unique_ptr<vector<shared_ptr<ExplorationStep> > > stackedJobs_storage;
     vector<shared_ptr<ExplorationStep> > *stackedJobs;
     PLCM *_PLCM_instance;
+    mutex starting_mutex;
     condition_variable cond_should_start;
     bool should_start;
     int _index_cpu;
