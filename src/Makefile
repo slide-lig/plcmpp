@@ -9,8 +9,8 @@ LDFLAGS=-std=gnu++11 -pthread -march=native
 LDLIBS=
 
 ifeq ($(DEBUG),1)
-	CPPFLAGS += -g3 -O0
-	LDFLAGS += -g
+	CPPFLAGS += -g3 -Og -fno-omit-frame-pointer
+	LDFLAGS += -g -Og -fno-omit-frame-pointer
 else
 	CPPFLAGS += -O3
 	LDFLAGS += -O3
