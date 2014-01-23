@@ -13,19 +13,6 @@ using namespace util;
 
 namespace internals {
 
-struct FrequentIterator* static_frequent_iterator_init() {
-
-	return new FrequentIterator();
-}
-
-thread_local FrequentIterator* Counters::localFrequentsIterator =
-		static_frequent_iterator_init();
-
-shp_vec_int32 make_p_vec_int32(uint32_t size)
-{
-	return make_shared<vec_int32>(size);
-}
-
 shp_vec_int32 make_p_vec_int32(uint32_t size, int32_t init_value)
 {
 	return make_shared<vec_int32>(size, init_value);
@@ -306,13 +293,6 @@ unique_ptr<FrequentsIterator> Counters::getExtensionsIterator() {
 			new ExtensionsIterator(this, maxCandidate));
 }
 
-FrequentsIterator* Counters::getLocalFrequentsIterator(int32_t from,
-		int32_t to) {
-	FrequentIterator *iterator = localFrequentsIterator;
-	iterator->recycle(from, to, this);
-	return iterator;
-}
-
 ExtensionsIterator::ExtensionsIterator(Counters* Counters, int32_t to) {
 	_counters = Counters;
 	index = 0;
@@ -347,52 +327,6 @@ int32_t ExtensionsIterator::peek() {
 }
 
 int32_t ExtensionsIterator::last() {
-	return max;
-}
-
-FrequentIterator::FrequentIterator() {
-	max = 0;
-	index = 0;
-	supportsFilter = nullptr;
-}
-
-void FrequentIterator::recycle(int32_t from, int32_t to, Counters* instance) {
-	max = to;
-	index = from;
-	supportsFilter = instance->compactedArrays ? nullptr :
-			instance->supportCounts;
-}
-
-// TODO: factorize w.r.t. ExtensionsIterator::next()
-
-int32_t FrequentIterator::next() {
-	if (supportsFilter == nullptr) {
-		int32_t nextIndex = index++;
-		if (nextIndex < max) {
-			return nextIndex;
-		} else {
-			return -1;
-		}
-	} else {
-		while (true) {
-			int32_t nextIndex = index++;
-			if (nextIndex < max) {
-				if ((*supportsFilter)[nextIndex] > 0) {
-					return nextIndex;
-				}
-			} else {
-				return -1;
-			}
-		}
-	}
-	return 0;	// never reached but avoids a warning
-}
-
-int32_t FrequentIterator::peek() {
-	return index;
-}
-
-int32_t FrequentIterator::last() {
 	return max;
 }
 

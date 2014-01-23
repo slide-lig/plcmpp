@@ -81,7 +81,6 @@ private:
 			TransactionsIterable* support);
 
 public:
-	int32_t getFailedFPTest(int32_t item);
 	void addFailedFPTest(int32_t item, int32_t firstParent);
 
 public:

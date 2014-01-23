@@ -150,11 +150,6 @@ unique_ptr<Dataset> ExplorationStep::instanciateDataset(ExplorationStep* parent,
 	return unique_ptr<Dataset>(dataset);
 }
 
-int32_t ExplorationStep::getFailedFPTest(int32_t item) {
-	unique_lock<mutex> lock(failedFPTests_mutex);
-	return (*failedFPTests)[item];
-}
-
 void ExplorationStep::addFailedFPTest(int32_t item,
 		int32_t firstParent) {
 	unique_lock<mutex> lock(failedFPTests_mutex);

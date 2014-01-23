@@ -123,14 +123,6 @@ protected:
 	 */
     int32_t maxCandidate;
 
-private:
-	/**
-	 * We use our own map, although it will contain a single item most of the time, because
-	 * ThreadLocal causes (huge) memory leaks when used as a non-static field.
-	 * @see getLocalFrequentsIterator
-	 */
-    static thread_local FrequentIterator* localFrequentsIterator;
-
 public:
 	/**
 	 * Does item counting over a projected dataset
@@ -208,13 +200,6 @@ public:
 	 * @return a thread-safe iterator over frequent items (in ascending order)
 	 */
     unique_ptr<FrequentsIterator> getExtensionsIterator();
-
-    /**
-	 * Notice: enumerated item IDs are in local base, use this.reverseRenaming
-	 *
-	 * @return an iterator over frequent items (in ascending order)
-	 */
-    FrequentsIterator* getLocalFrequentsIterator(int32_t from, int32_t to);
 };
 
 /**
@@ -238,22 +223,6 @@ public:
 	/**
 	 * @return -1 if iterator is finished
 	 */
-    int32_t next() override;
-    int32_t peek() override;
-    int32_t last() override;
-};
-
-class FrequentIterator : public FrequentsIterator
-{
-private:
-    int32_t index;
-    int32_t max;
-    shp_array_int32 supportsFilter;
-
-public:
-    FrequentIterator();
-
-    void recycle(int32_t from, int32_t to, Counters* instance);
     int32_t next() override;
     int32_t peek() override;
     int32_t last() override;
