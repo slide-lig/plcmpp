@@ -100,40 +100,36 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 			return nullptr;
 		}
 
-			if (selector == nullptr || selector->select(candidate, this)) {
-				unique_ptr<TransactionsIterable> support = dataset->getSupport(candidate);
+		if (selector == nullptr || selector->select(candidate, this)) {
+			unique_ptr<TransactionsIterable> support = dataset->getSupport(
+					candidate);
 
-				auto it = support->iterator();
-				unique_ptr<Counters> candidateCounts(new Counters(
-						counters->minSupport,
-						it.get(),
-						candidate,
-						counters->maxFrequent));
+			auto it = support->iterator();
+			unique_ptr<Counters> candidateCounts(
+					new Counters(counters->minSupport, it.get(), candidate,
+							counters->maxFrequent));
 
-				int32_t greatest = INT_MIN;
-				shp_vec_int32 closure = candidateCounts->getClosure();
-				for (uint32_t i = 0; i < closure->size(); i++) {
-					if ((*closure)[i] > greatest) {
-						greatest = (*closure)[i];
-					}
+			int32_t greatest = INT_MIN;
+			shp_vec_int32 closure = candidateCounts->getClosure();
+			for (uint32_t i = 0; i < closure->size(); i++) {
+				if ((*closure)[i] > greatest) {
+					greatest = (*closure)[i];
 				}
-
-				if (greatest > candidate) {
-					addFailedFPTest(candidate, greatest);
-					continue;
-				}
-
-				// instanciateDataset may choose to compress renaming - if
-				// not, at least it's set for now.
-				candidateCounts->reuseRenaming(counters->getReverseRenaming());
-
-				return unique_ptr<ExplorationStep>(
-						new ExplorationStep(
-								this,
-								candidate,
-								move(candidateCounts),	/* transfer ownership */
-								support.get()));
 			}
+
+			if (greatest > candidate) {
+				addFailedFPTest(candidate, greatest);
+				continue;
+			}
+
+			// instanciateDataset may choose to compress renaming - if
+			// not, at least it's set for now.
+			candidateCounts->reuseRenaming(counters->getReverseRenaming());
+
+			return unique_ptr<ExplorationStep>(
+					new ExplorationStep(this, candidate, move(candidateCounts), /* transfer ownership */
+					support.get()));
+		}
 	}
 
 	return nullptr; // never reached, here to avoid a warning
