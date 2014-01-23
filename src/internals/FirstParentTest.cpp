@@ -36,7 +36,7 @@ bool FirstParentTest::isAincludedInB(
  * returns true or throws a WrongFirstParentException
  */
 bool FirstParentTest::allowExploration(int32_t extension,
-		ExplorationStep* state) throw (Selector::WrongFirstParentException)
+		ExplorationStep* state)
 {
 	shp_array_int32 supportCounts = state->counters->supportCounts;
 	Dataset* d = state->dataset.get();
@@ -52,7 +52,8 @@ bool FirstParentTest::allowExploration(int32_t extension,
 			if (isAincludedInB(*candidateOccurrences, *iOccurrences)) {
 				PLCM::getCurrentThread()->counters[
 				            PLCM::PLCMCounters::FirstParentTestRejections]++;
-				throw Selector::WrongFirstParentException(extension, i);
+				state->addFailedFPTest(extension, i);
+				return false;
 			}
 		}
 	}

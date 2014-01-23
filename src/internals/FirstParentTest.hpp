@@ -12,8 +12,9 @@ namespace internals {
 class FirstParentTest : public Selector
 {
 protected:
-    bool allowExploration(int32_t extension, ExplorationStep* state)
-    		throw (Selector::WrongFirstParentException) override;
+    bool allowExploration(
+    		int32_t extension, ExplorationStep* state)
+    		override;
 
     inline void incrementCounter() override {
     		PLCM::getCurrentThread()->counters[

@@ -82,8 +82,6 @@ private:
 
 public:
 	int32_t getFailedFPTest(int32_t item);
-
-private:
 	void addFailedFPTest(int32_t item, int32_t firstParent);
 
 public:

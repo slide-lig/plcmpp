@@ -100,7 +100,6 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 			return nullptr;
 		}
 
-		try {
 			if (selector == nullptr || selector->select(candidate, this)) {
 				unique_ptr<TransactionsIterable> support = dataset->getSupport(candidate);
 
@@ -120,7 +119,8 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 				}
 
 				if (greatest > candidate) {
-					throw Selector::WrongFirstParentException(candidate, greatest);
+					addFailedFPTest(candidate, greatest);
+					continue;
 				}
 
 				// instanciateDataset may choose to compress renaming - if
@@ -134,9 +134,6 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 								move(candidateCounts),	/* transfer ownership */
 								support.get()));
 			}
-		} catch (Selector::WrongFirstParentException &e) {
-			addFailedFPTest(e.extension, e.firstParent);
-		}
 	}
 
 	return nullptr; // never reached, here to avoid a warning
