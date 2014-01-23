@@ -11,13 +11,14 @@ namespace internals {
 
 class FirstParentTest : public Selector
 {
-
 protected:
-	PLCM::PLCMCounters getCountersKey() override;
-
-    unique_ptr<Selector> copy() override;
     bool allowExploration(int32_t extension, ExplorationStep* state)
     		throw (Selector::WrongFirstParentException) override;
+
+    inline void incrementCounter() override {
+    		PLCM::getCurrentThread()->counters[
+    		          PLCM::PLCMCounters::FirstParentTestRejections]++;
+    }
 
 private:
     bool isAincludedInB(Iterator<int32_t>& aIt,

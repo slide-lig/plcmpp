@@ -34,8 +34,7 @@ public:
 class ExplorationStep {
 
 private:
-	static const string KEY_VIEW_SUPPORT_THRESHOLD;
-	static const string KEY_LONG_TRANSACTIONS_THRESHOLD;
+	static Selector *firstParentTestInstance;
 
 public:
 	static bool verbose;
@@ -55,9 +54,9 @@ public:
 
 protected:
 	/**
-	 * Selectors chain
+	 * Selector
 	 */
-	shared_ptr<Selector::List> selectChain;
+	Selector *selector;
 	shared_ptr<FrequentsIterator> candidates = nullptr;
 
 private:
@@ -88,9 +87,7 @@ private:
 	void addFailedFPTest(int32_t item, int32_t firstParent);
 
 public:
-	void appendSelector(Selector* s);
 	int32_t getCatchedWrongFirstParentCount();
-	unique_ptr<ExplorationStep> copy();
 	unique_ptr<Progress> getProgression();
 
 	/**
@@ -102,9 +99,6 @@ public:
 	 *            transaction containing space-separated item IDs.
 	 */
 	ExplorationStep(int32_t minimumSupport, string& path);
-
-private:
-	ExplorationStep(const ExplorationStep& other);	// copy constructor
 
 protected:
 	/**

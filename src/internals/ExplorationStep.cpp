@@ -21,14 +21,12 @@ namespace internals {
 bool ExplorationStep::verbose = false;
 bool ExplorationStep::ultraVerbose = false;
 
-const string KEY_VIEW_SUPPORT_THRESHOLD = "toplcm.threshold.view";;
-const string KEY_LONG_TRANSACTIONS_THRESHOLD = "toplcm.threshold.long";
+Selector *ExplorationStep::firstParentTestInstance = new FirstParentTest();
 
 ExplorationStep::ExplorationStep(int32_t minimumSupport,
 		string& path) : candidates(nullptr) {
 	core_item = INT_MAX;
-	selectChain.reset(new Selector::List());
-
+	selector = nullptr;
 	/* the following FileReader will just be used in the constructors of
 	 * Counters and Dataset, so we declare it local in this
 	 * constructor.
@@ -45,19 +43,6 @@ ExplorationStep::ExplorationStep(int32_t minimumSupport,
 
 	failedFPTests.reset(new map<int32_t, int32_t>());
 }
-
-ExplorationStep::ExplorationStep(const ExplorationStep& other) {
-
-	pattern = other.pattern;
-	core_item = other.core_item;
-	dataset = other.dataset->clone();
-	counters = other.counters->clone();
-	selectChain = other.selectChain;
-	candidates = other.candidates;
-	failedFPTests = other.failedFPTests;
-}
-
-
 
 ExplorationStep::ExplorationStep(ExplorationStep* parent,
 		int32_t extension, unique_ptr<Counters> candidateCounts,
@@ -85,20 +70,13 @@ ExplorationStep::ExplorationStep(ExplorationStep* parent,
 	if (counters->nbFrequents == 0 || counters->distinctTransactionsCount == 0) {
 		candidates = nullptr;
 		failedFPTests = nullptr;
-		selectChain = nullptr;
+		selector = nullptr;
 		dataset = nullptr;
 	} else {
 		failedFPTests.reset(
 				new map<int32_t, int32_t>());
 
-		if (parent->selectChain == nullptr) {
-			selectChain = nullptr;
-		} else {
-			selectChain = Helpers::unique_to_shared(
-					parent->selectChain->copy());
-		}
-
-		selectChain->push_front(unique_ptr<Selector>(new FirstParentTest()));
+		selector = ExplorationStep::firstParentTestInstance;
 
 		// indeed, instantiateDataset is influenced by longTransactionsMode
 		dataset = instanciateDataset(parent, support);
@@ -107,12 +85,6 @@ ExplorationStep::ExplorationStep(ExplorationStep* parent,
 		// counters
 		candidates = Helpers::unique_to_shared(counters->getExtensionsIterator());
 	}
-}
-
-unique_ptr<ExplorationStep> ExplorationStep::copy() {
-	// use the copy constructor
-	return unique_ptr<ExplorationStep>(
-			new ExplorationStep(*this));
 }
 
 unique_ptr<ExplorationStep> ExplorationStep::next() {
@@ -129,7 +101,7 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 		}
 
 		try {
-			if (selectChain == nullptr || selectChain->select(candidate, this)) {
+			if (selector == nullptr || selector->select(candidate, this)) {
 				unique_ptr<TransactionsIterable> support = dataset->getSupport(candidate);
 
 				auto it = support->iterator();
@@ -194,10 +166,6 @@ void ExplorationStep::addFailedFPTest(int32_t item,
 		int32_t firstParent) {
 	unique_lock<mutex> lock(failedFPTests_mutex);
 	(*failedFPTests)[item] = firstParent;
-}
-
-void ExplorationStep::appendSelector(Selector* s) {
-	selectChain->push_back(unique_ptr<Selector>(s));
 }
 
 int32_t ExplorationStep::getCatchedWrongFirstParentCount() {

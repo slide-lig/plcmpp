@@ -9,14 +9,6 @@ using namespace util;
 
 namespace internals {
 
-PLCM::PLCMCounters FirstParentTest::getCountersKey() {
-	return PLCM::PLCMCounters::FirstParentTestRejections;
-}
-
-unique_ptr<Selector> FirstParentTest::copy() {
-	return unique_ptr<Selector>(new FirstParentTest());
-}
-
 bool FirstParentTest::isAincludedInB(
 		Iterator<int32_t>& aIt,
 		Iterator<int32_t>& bIt) {

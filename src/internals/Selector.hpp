@@ -36,19 +36,12 @@ public:
 		 * @param foundFirstParent
 		 *            a item found in closure > extension
 		 */
-        WrongFirstParentException(int32_t exploredExtension, int32_t foundFirstParent);
+        WrongFirstParentException(
+        		int32_t exploredExtension, int32_t foundFirstParent);
      };
 
-    class List : public deque<unique_ptr<Selector>> {
-    public:
-    	unique_ptr<List> copy();
-
-    	bool select(int32_t extension, ExplorationStep* state)
-    			throw (Selector::WrongFirstParentException);
-    };
-
 protected:
-	/**
+    /**
 	 * @param extension in state's local base
 	 * @param state
 	 * @return false if, at the given state, trying to extend the current
@@ -58,19 +51,9 @@ protected:
     virtual bool allowExploration(int32_t extension, ExplorationStep* state)
     		throw (Selector::WrongFirstParentException) = 0;
 
-	/**
-	 * @return an instance of the same selector for another recursion
-	 */
-    virtual unique_ptr<Selector> copy() = 0;
-
-	/**
-	 * @return which enum value from TopLCMCounters will be used to count this Selector's rejections,
-	 * or null if we don't want to count rejections from the implementing class
-	 */
-    virtual PLCM::PLCMCounters getCountersKey() = 0;
-
-protected:
-	/**
+public:
+    virtual ~Selector();
+    /**
 	 * @param extension
 	 * @param state
 	 * @return false if, at the given state, trying to extend the current
@@ -80,8 +63,8 @@ protected:
     bool select(int32_t extension, ExplorationStep* state)
     				throw (Selector::WrongFirstParentException);
 
-public:
-    virtual ~Selector();
+protected:
+    virtual void incrementCounter() = 0;
 };
 
 }
