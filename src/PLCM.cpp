@@ -224,7 +224,7 @@ void PLCM::createThreads(int32_t nbThreads) {
 
 	for (int i = 0; i < nbThreads; i++) {
 		index_cpu = i%num_cpus;
-		auto t = new PLCMThread(this, index_cpu);
+		auto t = new PLCMThread(i, this, index_cpu);
 		(*threads)[t->getId()] = unique_ptr<PLCMThread>(t);
 	}
 }
@@ -261,8 +261,8 @@ shared_ptr<ExplorationStep> PLCM::stealJob(PLCMThread* thief) {
 			it = threads->begin();
 		auto job = it->second->giveJob(thief);
 		if (job != nullptr) {
-			//cout << "Job stolen: thread " << it->second->getId()
-			//		<< " to " << thief_id << endl;
+			//cout << "Job stolen: thread " << it->second->getHumanReadableId()
+			//		<< " to " << thief->getHumanReadableId() << endl;
 			return job;
 		}
 
@@ -292,7 +292,9 @@ unique_ptr<PatternsCollector> PLCM::instanciateCollector(PLCM::Options *options)
 	return unique_ptr<PatternsCollector>(collector);
 }
 
-PLCMThread::PLCMThread(PLCM* PLCM_instance, int index_cpu) {
+PLCMThread::PLCMThread(uint32_t human_readable_id,
+		PLCM* PLCM_instance, int index_cpu) {
+	_human_readable_id = human_readable_id;
 	stackedJobs = new vector<shared_ptr<ExplorationStep> >();
 	stackedJobs_storage = unique_ptr<vector<shared_ptr<ExplorationStep> > >(
 			stackedJobs); // auto delete
@@ -309,6 +311,10 @@ PLCMThread::PLCMThread(PLCM* PLCM_instance, int index_cpu) {
 
 thread::id PLCMThread::getId() {
 	return _thread->get_id();
+}
+
+uint32_t PLCMThread::getHumanReadableId() {
+	return _human_readable_id;
 }
 
 void PLCMThread::run() {

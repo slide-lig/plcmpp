@@ -69,7 +69,7 @@ ExplorationStep::ExplorationStep(ExplorationStep* parent,
 	if (verbose) {
 		if (parent->pattern->size() == 0 || ultraVerbose) {
 			cerr << "{\"time\":\"" << Helpers::formatted_time() <<
-					"\",\"thread\":" << PLCM::getCurrentThread()->getId() <<
+					"\",\"thread\":" << PLCM::getCurrentThread()->getHumanReadableId() <<
 					",\"pattern\":" <<
 							Helpers::printed_vector(parent->pattern.get()) <<
 					",\"extension_internal\":" << extension <<

@@ -107,13 +107,16 @@ protected:
     condition_variable cond_should_start;
     bool should_start;
     int _index_cpu;
+    uint32_t _human_readable_id;
 
 public:
     uint64_t counters[PLCM::PLCMCounters::Number_of_PLCMCounters];
 
 public:
-    PLCMThread(PLCM *PLCM_instance, int index_cpu);
+    PLCMThread(uint32_t human_readable_id,
+    		PLCM *PLCM_instance, int index_cpu);
     thread::id getId();
+    uint32_t getHumanReadableId();
     void run();
     void join();
     void init(shared_ptr<ExplorationStep> initState);
