@@ -29,7 +29,6 @@ PLCM::PLCM(struct Options *options) {
 	}
 	collector = instanciateCollector(options);
 	threads = unique_ptr<thread_map>(new thread_map());
-	createThreads(nbThreads);
 	progressWatch = unique_ptr<ProgressWatcherThread>(
 			new ProgressWatcherThread());
 	for (uint i = 0; i < PLCMCounters::Number_of_PLCMCounters; ++i) {
@@ -44,7 +43,7 @@ void PLCM::collect(int32_t support, vector<int32_t>* pattern) {
 	collector->collect(support, pattern);
 }
 
-void PLCM::lcm(shared_ptr<ExplorationStep> initState) {
+void PLCM::lcm(shared_ptr<ExplorationStep> initState, uint32_t num_threads) {
 	if (initState->pattern->size() > 0) {
 		collector->collect(
 				initState->counters->transactionsCount,
@@ -53,6 +52,7 @@ void PLCM::lcm(shared_ptr<ExplorationStep> initState) {
 
 	progressWatch->setInitState(initState);
 
+	createThreads(num_threads);
 	initializeAndStartThreads(initState);
 
 	progressWatch->start();
@@ -193,7 +193,7 @@ void PLCM::standalone(unique_ptr<PLCM::Options> options) {
 	unique_ptr<PLCM> miner(new PLCM(options.get()));
 
 	chrono = Helpers::precise_time();
-	miner->lcm(initState);
+	miner->lcm(initState, options->num_threads);
 	chrono = Helpers::precise_time() - chrono;
 
 	unique_ptr<map<string, uint64_t> > additionalcounters(

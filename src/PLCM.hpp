@@ -74,7 +74,7 @@ public:
     ~PLCM();
 
     void collect(int32_t support, vector<int32_t>* pattern);
-    void lcm(shared_ptr<ExplorationStep> initState);
+    void lcm(shared_ptr<ExplorationStep> initState, uint32_t num_threads);
     void display(ostream& stream, map<string, uint64_t>* additionalCounters);
     int64_t closeCollector();
     int32_t getAveragePatternLength();
