@@ -25,11 +25,12 @@ ConsecutiveItemsConcatenatedTidList::ConsecutiveItemsConcatenatedTidList(
 	_indexAndFreqs = new array_int32(top * 2, 0);
 	_indexAndFreqs_fast = _indexAndFreqs->array;
 	_indexAndFreqs_size = _indexAndFreqs->size();
-	for (int32_t i = 0; i < top; i++) {
-		int32_t itemIndex = i << 1;
-		if (lengths_fast[i] > 0) {
+	int32_t itemIndex;
+	for (int32_t i = 0; i < top; ++i, ++lengths_fast) {
+		itemIndex = i << 1;
+		if (*lengths_fast > 0) {
 			_indexAndFreqs_fast[itemIndex] = startPos;
-			startPos += lengths_fast[i];
+			startPos += *lengths_fast;
 		} else {
 			_indexAndFreqs_fast[itemIndex] = -1;
 		}

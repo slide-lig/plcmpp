@@ -44,9 +44,11 @@ bool FirstParentTest::allowExploration(int32_t extension,
 	Dataset* d = state->dataset.get();
 
 	int32_t candidateSupport = supportCounts[extension];
+	int32_t i = state->counters->maxFrequent;
+	supportCounts += i;
 
-	for (int32_t i = state->counters->maxFrequent; i > extension; i--) {
-		if (supportCounts[i] >= candidateSupport) {
+	for (; i > extension; i--, supportCounts--) {
+		if (*supportCounts >= candidateSupport) {
 			candidateOccurrences = d->getTidList(extension);
 			iOccurrences = d->getTidList(i);
 			if (isAincludedInB(*candidateOccurrences, *iOccurrences)) {

@@ -102,7 +102,7 @@ Counters::Counters(
 			(*it_distinctTransactionsCounts) = 0;
 		} else {
 			biggestItemID = i;
-			remainingFrequents++;
+			++remainingFrequents;
 			remainingDistinctTransLengths += (*it_distinctTransactionsCounts);
 		}
 	}
