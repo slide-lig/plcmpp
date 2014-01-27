@@ -15,13 +15,18 @@ namespace util {
 
 template <class T>
 class RawArray {
+
 public:
 	T * array;
 	uint32_t length;
 
-	inline RawArray(uint32_t in_length, T init_value = 0) {
+	inline RawArray(uint32_t in_length) {
 		length = in_length;
 		array = new T[in_length];
+	}
+
+	inline RawArray(uint32_t in_length, T init_value) :
+				RawArray(in_length) {
 		auto the_end = end();
 		for (auto it = begin(); it != the_end; it++)
 		{

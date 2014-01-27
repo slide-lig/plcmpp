@@ -18,6 +18,7 @@ shp_vec_int32 make_p_vec_int32(uint32_t size, int32_t init_value)
 	return make_shared<vec_int32>(size, init_value);
 }
 
+
 shp_array_int32 make_p_array_int32(uint32_t size)
 {
 	return make_shared<array_int32>(size);
@@ -36,8 +37,8 @@ Counters::Counters(
 
 	renaming = nullptr;
 	minSupport = minimumSupport;
-	supportCounts = make_p_array_int32(maxItem + 1);
-	distinctTransactionsCounts = make_p_array_int32(maxItem + 1);
+	supportCounts = make_p_array_int32(maxItem + 1, 0);
+	distinctTransactionsCounts = make_p_array_int32(maxItem + 1, 0);
 	reverseRenaming = nullptr;
 	auto opt_supportCounts = supportCounts->array;
 	auto opt_distinctTransactionsCounts = distinctTransactionsCounts->array;

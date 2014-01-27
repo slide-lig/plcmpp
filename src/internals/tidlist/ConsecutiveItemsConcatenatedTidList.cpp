@@ -22,7 +22,7 @@ ConsecutiveItemsConcatenatedTidList::ConsecutiveItemsConcatenatedTidList(
 	int32_t startPos = 0;
 	int32_t top = min(highestTidList, (int32_t)lengths->size());
 	auto lengths_fast = lengths->array;
-	_indexAndFreqs = new array_int32(top * 2);
+	_indexAndFreqs = new array_int32(top * 2, 0);
 	_indexAndFreqs_fast = _indexAndFreqs->array;
 	_indexAndFreqs_size = _indexAndFreqs->size();
 	for (int32_t i = 0; i < top; i++) {
