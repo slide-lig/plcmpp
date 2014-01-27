@@ -16,7 +16,7 @@ class FileCollector;
  * A thread safe PatternsCollector that will write to multiple files, one per mining thread.
  */
 class MultiThreadedFileCollector
-    : public virtual PatternsCollector
+    : public PatternsCollector
 {
 
 private:

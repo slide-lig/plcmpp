@@ -6,7 +6,7 @@
 
 namespace io {
 
-class PatternSortCollector : public virtual PatternsCollector
+class PatternSortCollector : public PatternsCollector
 {
 
 protected:

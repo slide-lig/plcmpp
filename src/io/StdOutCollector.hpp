@@ -7,7 +7,7 @@
 namespace io {
 
 class StdOutCollector
-    : public virtual PatternsCollector
+    : public PatternsCollector
 {
 
 protected:

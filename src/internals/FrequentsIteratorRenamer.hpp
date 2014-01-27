@@ -9,7 +9,7 @@ using namespace util;
 
 namespace internals {
 
-class FrequentsIteratorRenamer : public virtual FrequentsIterator
+class FrequentsIteratorRenamer : public FrequentsIterator
 {
 private:
     p_array_int32 _renaming;

@@ -11,7 +11,7 @@ using namespace std;
 
 namespace io {
 
-class FileCollector : public virtual PatternsCollector
+class FileCollector : public PatternsCollector
 {
 
 protected:

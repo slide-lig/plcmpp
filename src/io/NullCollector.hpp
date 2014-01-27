@@ -8,7 +8,7 @@
 
 namespace io {
 
-class NullCollector : public virtual PatternsCollector
+class NullCollector : public PatternsCollector
 {
 
 protected:

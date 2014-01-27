@@ -15,7 +15,7 @@ namespace internals {
 class TransactionsIteratorDecorator : public Iterator<TransactionReader*>
 {
 protected:
-	class FilteredTransaction : public virtual TransactionReader
+	class FilteredTransaction : public TransactionReader
 	{
 	protected:
 	    TransactionReader* _wrapped;
