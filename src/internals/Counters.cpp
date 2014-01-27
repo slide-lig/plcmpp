@@ -39,8 +39,8 @@ Counters::Counters(
 	supportCounts = make_p_array_int32(maxItem + 1);
 	distinctTransactionsCounts = make_p_array_int32(maxItem + 1);
 	reverseRenaming = nullptr;
-	auto opt_supportCounts = supportCounts.get();
-	auto opt_distinctTransactionsCounts = distinctTransactionsCounts.get();
+	auto opt_supportCounts = supportCounts->array;
+	auto opt_distinctTransactionsCounts = distinctTransactionsCounts->array;
 
 	// item support and transactions counting
 
@@ -58,8 +58,8 @@ Counters::Counters(
 			while (transaction->hasNext()) {
 				int item = transaction->next();
 				if (item <= maxItem) {
-					(*opt_supportCounts)[item] += weight;
-					(*opt_distinctTransactionsCounts)[item]++;
+					opt_supportCounts[item] += weight;
+					opt_distinctTransactionsCounts[item]++;
 				}
 			}
 		}
@@ -69,8 +69,8 @@ Counters::Counters(
 	distinctTransactionsCount = transactionsCount;
 
 	// ignored items
-	(*opt_supportCounts)[extension] = 0;
-	(*opt_distinctTransactionsCounts)[extension] = 0;
+	opt_supportCounts[extension] = 0;
+	opt_distinctTransactionsCounts[extension] = 0;
 	maxCandidate = extension;
 
 	// item filtering and final computations : some are infrequent, some
@@ -81,10 +81,10 @@ Counters::Counters(
 	uint32_t remainingFrequents = 0;
 	uint32_t biggestItemID = 0;
 
-	auto it_supportCounts_end = opt_supportCounts->end();
-	auto it_supportCounts = opt_supportCounts->begin();
+	auto it_supportCounts_end = supportCounts->end();
+	auto it_supportCounts = supportCounts->begin();
 	auto it_distinctTransactionsCounts =
-			opt_distinctTransactionsCounts->begin();
+			distinctTransactionsCounts->begin();
 	uint32_t i;
 
 	for (i = 0;
@@ -249,18 +249,23 @@ shp_array_int32 Counters::compressRenaming(
 			max(olderReverseRenaming->size(), supportCounts->size());
 	auto new_renaming = make_p_array_int32(new_renaming_size);
 	reverseRenaming = make_p_array_int32(nbFrequents);
+	auto opt_supportCounts = supportCounts->array;
+	auto opt_new_renaming = new_renaming->array;
+	auto opt_reverseRenaming = reverseRenaming->array;
+	auto opt_olderReverseRenaming = olderReverseRenaming->array;
+	auto opt_distinctTransactionsCounts = distinctTransactionsCounts->array;
 
 	// we will always have newItemID <= item
 	int newItemID = 0;
 	int greatestBelowMaxCandidate = INT32_MIN;
 
 	for (int32_t item = 0; item < (int32_t)supportCounts->size(); item++) {
-		if ((*supportCounts)[item] > 0) {
-			(*new_renaming)[item] = newItemID;
-			(*reverseRenaming)[newItemID] = (*olderReverseRenaming)[item];
+		if (opt_supportCounts[item] > 0) {
+			opt_new_renaming[item] = newItemID;
+			opt_reverseRenaming[newItemID] = opt_olderReverseRenaming[item];
 
-			(*distinctTransactionsCounts)[newItemID] = (*distinctTransactionsCounts)[item];
-			(*supportCounts)[newItemID] = (*supportCounts)[item];
+			opt_distinctTransactionsCounts[newItemID] = opt_distinctTransactionsCounts[item];
+			opt_supportCounts[newItemID] = opt_supportCounts[item];
 
 			if (item < maxCandidate) {
 				greatestBelowMaxCandidate = newItemID;
@@ -268,7 +273,7 @@ shp_array_int32 Counters::compressRenaming(
 
 			newItemID++;
 		} else {
-			(*new_renaming)[item] = -1;
+			opt_new_renaming[item] = -1;
 		}
 	}
 
@@ -308,10 +313,11 @@ int32_t ExtensionsIterator::next() {
 			return -1;
 		}
 	} else {
+		auto opt_supportCounts = _counters->supportCounts->array;
 		while (true) {
 			int32_t nextIndex = index++;
 			if (nextIndex < max) {
-				if ((*_counters->supportCounts)[nextIndex] > 0) {
+				if (opt_supportCounts[nextIndex] > 0) {
 					return nextIndex;
 				}
 			} else {

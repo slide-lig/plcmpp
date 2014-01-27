@@ -18,6 +18,8 @@ class IndexedTransactionsList: public TransactionsList {
 
 private:
 	p_array_int32 _indexAndFreqs;
+	int32_t* _indexAndFreqs_fast;
+	uint32_t _indexAndFreqs_size;
 	int32_t _size;
 
 protected:

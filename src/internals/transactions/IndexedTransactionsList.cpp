@@ -11,6 +11,8 @@ namespace transactions {
 IndexedTransactionsList::IndexedTransactionsList(
 		int32_t nbTransactions) {
 	_indexAndFreqs = new array_int32(nbTransactions << 1, -1);
+	_indexAndFreqs_fast = _indexAndFreqs->array;
+	_indexAndFreqs_size = _indexAndFreqs->size();
 	_size = 0;
 	writeIndex = 0;
 }
@@ -22,6 +24,8 @@ IndexedTransactionsList::IndexedTransactionsList(
 	_size = other._size;
 	writeIndex = other.writeIndex;
 	_indexAndFreqs = new array_int32(*(other._indexAndFreqs));
+	_indexAndFreqs_fast = _indexAndFreqs->array;
+	_indexAndFreqs_size = _indexAndFreqs->size();
 }
 
 IndexedTransactionsList::~IndexedTransactionsList() {
@@ -32,41 +36,41 @@ void IndexedTransactionsList::positionIterator(
 		int32_t transaction, IndexedReusableIterator* iter) {
 
 	uint32_t startPos = transaction << 1;
-	if (startPos >= _indexAndFreqs->size() ||
-			(*_indexAndFreqs)[startPos] == -1) {
+	if (startPos >= _indexAndFreqs_size ||
+			_indexAndFreqs_fast[startPos] == -1) {
 		cerr << "transaction " << transaction <<
 				" does not exist! Aborting." << endl;
 		abort();
 	} else {
 		uint32_t endPos = startPos + 2;
 		int32_t end;
-		if (endPos < _indexAndFreqs->size()) {
-			end = (*_indexAndFreqs)[endPos];
+		if (endPos < _indexAndFreqs_size) {
+			end = _indexAndFreqs_fast[endPos];
 			if (end == -1) {
 				end = writeIndex;
 			}
 		} else {
 			end = writeIndex;
 		}
-		iter->set((*_indexAndFreqs)[startPos], end);
+		iter->set(_indexAndFreqs_fast[startPos], end);
 	}
 }
 
 int32_t IndexedTransactionsList::getTransSupport(
 		int32_t trans) {
 	int32_t startPos = trans << 1;
-	return (*_indexAndFreqs)[startPos + 1];
+	return _indexAndFreqs_fast[startPos + 1];
 }
 
 void IndexedTransactionsList::setTransSupport(
 		int32_t trans, int32_t s) {
 	int32_t startPos = trans << 1;
-	if (s != 0 && (*_indexAndFreqs)[startPos + 1] == 0) {
+	if (s != 0 && _indexAndFreqs_fast[startPos + 1] == 0) {
 		_size++;
-	} else if (s == 0 && (*_indexAndFreqs)[startPos + 1] != 0) {
+	} else if (s == 0 && _indexAndFreqs_fast[startPos + 1] != 0) {
 		_size--;
 	}
-	(*_indexAndFreqs)[startPos + 1] = s;
+	_indexAndFreqs_fast[startPos + 1] = s;
 }
 
 unique_ptr<Iterator<int32_t> > IndexedTransactionsList::getIdIterator() {
@@ -80,10 +84,10 @@ unique_ptr<TransactionsWriter> IndexedTransactionsList::getWriter() {
 void IndexedTransactionsList::beginTransaction(int32_t transId,
 		int32_t support) {
 	int32_t startPos = transId << 1;
-	(*_indexAndFreqs)[startPos] = writeIndex;
-	(*_indexAndFreqs)[startPos + 1] = support;
+	_indexAndFreqs_fast[startPos] = writeIndex;
+	_indexAndFreqs_fast[startPos + 1] = support;
 	if (support != 0) {
-		_size++;
+		++_size;
 	}
 }
 
@@ -91,12 +95,12 @@ int32_t IndexedTransactionsList::findNext(int32_t nextPos) {
 	while (true) {
 		nextPos++;
 		uint32_t nextPosStart = nextPos << 1;
-		if (nextPosStart >= _indexAndFreqs->size() ||
-				(*_indexAndFreqs)[nextPosStart] == -1) {
+		if (nextPosStart >= _indexAndFreqs_size ||
+				_indexAndFreqs_fast[nextPosStart] == -1) {
 			nextPos = -1;
 			return nextPos;
 		}
-		if ((*_indexAndFreqs)[nextPosStart + 1] > 0) {
+		if (_indexAndFreqs_fast[nextPosStart + 1] > 0) {
 			return nextPos;
 		}
 	}

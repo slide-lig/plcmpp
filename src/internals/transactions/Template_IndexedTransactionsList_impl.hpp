@@ -25,6 +25,7 @@ Template_IndexedTransactionsList<T>::Template_IndexedTransactionsList(
 		IndexedTransactionsList(nbTransactions)
 {
 	_concatenated = new RawArray<T>(transactionsLength);
+	_concatenated_fast = _concatenated->array;
 }
 
 template <class T>
@@ -32,6 +33,7 @@ Template_IndexedTransactionsList<T>::Template_IndexedTransactionsList(
 		const Template_IndexedTransactionsList<T>& other) :
 				IndexedTransactionsList(other) {
 	_concatenated = new RawArray<T>(*(other._concatenated));
+	_concatenated_fast = _concatenated->array;
 }
 
 template <class T>
@@ -43,7 +45,7 @@ Template_IndexedTransactionsList<T>::~Template_IndexedTransactionsList()
 template <class T>
 unique_ptr<ReusableTransactionIterator> Template_IndexedTransactionsList<T>::getIterator() {
 	return unique_ptr<ReusableTransactionIterator>(
-			new Template_TransIter<T>(this, _concatenated));
+			new Template_TransIter<T>(this, _concatenated_fast));
 }
 
 template <class T>
@@ -75,33 +77,33 @@ void Template_IndexedTransactionsList<T>::writeItem(
 				<< endl;
 		abort();
 	}
-	(*_concatenated)[writeIndex] = (T) item;
+	_concatenated_fast[writeIndex] = (T) item;
 	writeIndex++;
 }
 
 template <class T>
 Template_TransIter<T>::Template_TransIter(
 			IndexedTransactionsList *tlist,
-			RawArray<T>* concatenated) :
+			T* concatenated_fast) :
 		BasicTransIter(tlist) {
-	_concatenated = concatenated;
+	_concatenated = concatenated_fast;
 }
 
 template <class T>
 bool Template_TransIter<T>::isNextPosValid() {
-	return (*_concatenated)[_nextPos] !=
+	return _concatenated[_nextPos] !=
 			Template_IndexedTransactionsList<T>::MAX_VALUE;
 }
 
 template <class T>
 void Template_TransIter<T>::removePosVal() {
-	(*_concatenated)[_pos] =
+	_concatenated[_pos] =
 			Template_IndexedTransactionsList<T>::MAX_VALUE;
 }
 
 template <class T>
 int32_t Template_TransIter<T>::getPosVal() {
-	return (*_concatenated)[_pos];
+	return _concatenated[_pos];
 }
 
 }

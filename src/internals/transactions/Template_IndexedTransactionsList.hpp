@@ -16,6 +16,7 @@ class Template_IndexedTransactionsList: public IndexedTransactionsList {
 
 private:
 	RawArray<T>* _concatenated;
+	T* _concatenated_fast;
 
 public:
 	static const T MAX_VALUE;
@@ -40,12 +41,12 @@ protected:
 template <class T>
 class Template_TransIter: public BasicTransIter {
 private:
-	RawArray<T>* _concatenated;
+	T* _concatenated;
 
 public:
 	Template_TransIter(
 			IndexedTransactionsList *tlist,
-			RawArray<T>* concatenated);
+			T* concatenated_fast);
 protected:
 	bool isNextPosValid() override;
 	void removePosVal() override;
