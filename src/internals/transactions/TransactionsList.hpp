@@ -31,7 +31,7 @@ public:
     virtual void compress(int32_t prefixEnd);
 
 private:
-    static void sort(p_array_int32 array, int32_t start, int32_t end,
+    static void sort(array_int32 &array, int32_t start, int32_t end,
     		ReusableTransactionIterator *it1,
     		ReusableTransactionIterator *it2,
     		int32_t prefixEnd);

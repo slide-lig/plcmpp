@@ -63,6 +63,7 @@ protected:
 
 	typedef map<thread::id, unique_ptr<PLCMThread> > 	thread_map;
     static unique_ptr<thread_map> threads;
+    static thread_map *threads_fast;
 
 private:
     unique_ptr<ProgressWatcherThread> progressWatch;
@@ -75,7 +76,7 @@ public:
 
     void collect(int32_t support, vector<int32_t>* pattern);
     void lcm(shared_ptr<ExplorationStep> initState, uint32_t num_threads);
-    void display(ostream& stream, map<string, uint64_t>* additionalCounters);
+    void display(ostream& stream, map<string, uint64_t>& additionalCounters);
     int64_t closeCollector();
     int32_t getAveragePatternLength();
 

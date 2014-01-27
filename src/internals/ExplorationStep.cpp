@@ -109,19 +109,16 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 					new Counters(counters->minSupport, it.get(), candidate,
 							counters->maxFrequent));
 
-			int32_t greatest = INT_MIN;
-			shp_vec_int32 closure = candidateCounts->getClosure();
-			for (uint32_t i = 0; i < closure->size(); i++) {
-				if ((*closure)[i] > greatest) {
-					greatest = (*closure)[i];
+			auto closure = candidateCounts->getClosure().get();
+			if (closure->size() > 0)
+			{
+				int32_t greatest = *std::max_element(closure->begin(), closure->end());
+
+				if (greatest > candidate) {
+					addFailedFPTest(candidate, greatest);
+					continue;
 				}
 			}
-
-			if (greatest > candidate) {
-				addFailedFPTest(candidate, greatest);
-				continue;
-			}
-
 			// instanciateDataset may choose to compress renaming - if
 			// not, at least it's set for now.
 			candidateCounts->reuseRenaming(counters->getReverseRenaming());

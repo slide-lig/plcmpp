@@ -21,14 +21,17 @@ ConsecutiveItemsConcatenatedTidList::ConsecutiveItemsConcatenatedTidList(
 		p_array_int32 lengths, int32_t highestTidList) {
 	int32_t startPos = 0;
 	int32_t top = min(highestTidList, (int32_t)lengths->size());
+	auto lengths_fast = lengths->array;
 	_indexAndFreqs = new array_int32(top * 2);
+	_indexAndFreqs_fast = _indexAndFreqs->array;
+	_indexAndFreqs_size = _indexAndFreqs->size();
 	for (int32_t i = 0; i < top; i++) {
 		int32_t itemIndex = i << 1;
-		if ((*lengths)[i] > 0) {
-			(*_indexAndFreqs)[itemIndex] = startPos;
-			startPos += (*lengths)[i];
+		if (lengths_fast[i] > 0) {
+			_indexAndFreqs_fast[itemIndex] = startPos;
+			startPos += lengths_fast[i];
 		} else {
-			(*_indexAndFreqs)[itemIndex] = -1;
+			_indexAndFreqs_fast[itemIndex] = -1;
 		}
 	}
 	_storage_size = startPos;
@@ -37,6 +40,8 @@ ConsecutiveItemsConcatenatedTidList::ConsecutiveItemsConcatenatedTidList(
 ConsecutiveItemsConcatenatedTidList::ConsecutiveItemsConcatenatedTidList(
 		const ConsecutiveItemsConcatenatedTidList& other) {
 	_indexAndFreqs = new array_int32(*(other._indexAndFreqs));
+	_indexAndFreqs_fast = _indexAndFreqs->array;
+	_indexAndFreqs_size = _indexAndFreqs->size();
 	_storage_size = other._storage_size;
 }
 
@@ -47,13 +52,13 @@ ConsecutiveItemsConcatenatedTidList::~ConsecutiveItemsConcatenatedTidList() {
 unique_ptr<Iterator<int32_t> > ConsecutiveItemsConcatenatedTidList::get(
 		int32_t item) {
 	uint32_t itemIndex = item << 1;
-	if (itemIndex > _indexAndFreqs->size() ||
-			(*_indexAndFreqs)[itemIndex] == -1) {
+	if (itemIndex > _indexAndFreqs_size ||
+			_indexAndFreqs_fast[itemIndex] == -1) {
 		cerr << "item " << item << " has no tidlist" << endl;
 		abort();
 	}
-	int32_t startPos = (*_indexAndFreqs)[itemIndex];
-	int32_t length = (*_indexAndFreqs)[itemIndex + 1];
+	int32_t startPos = _indexAndFreqs_fast[itemIndex];
+	int32_t length = _indexAndFreqs_fast[itemIndex + 1];
 	return unique_ptr<Iterator<int32_t> >(
 			new TidIterator(this, length, startPos));
 }
@@ -68,15 +73,15 @@ unique_ptr<TidList::TIntIterable>
 void ConsecutiveItemsConcatenatedTidList::addTransaction(
 		int32_t item, int32_t transaction) {
 	uint32_t itemIndex = item << 1;
-	if (itemIndex > _indexAndFreqs->size() ||
-			(*_indexAndFreqs)[itemIndex] == -1) {
+	if (itemIndex > _indexAndFreqs_size ||
+			_indexAndFreqs_fast[itemIndex] == -1) {
 		cerr << "item " << item << " has no tidlist" << endl;
 		abort();
 	}
-	int32_t start = (*_indexAndFreqs)[itemIndex];
-	int32_t index = (*_indexAndFreqs)[itemIndex + 1];
+	int32_t start = _indexAndFreqs_fast[itemIndex];
+	int32_t index = _indexAndFreqs_fast[itemIndex + 1];
 	write(start + index, transaction);
-	(*_indexAndFreqs)[itemIndex + 1]++;
+	_indexAndFreqs_fast[itemIndex + 1]++;
 }
 
 TidIterable::TidIterable(
@@ -105,9 +110,7 @@ bool TidIterator::hasNext() {
 }
 
 int32_t TidIterator::next() {
-	uint32_t res = _tidlist->read(_startPos + _index);
-	_index++;
-	return res;
+	return _tidlist->read(_startPos + (_index++));
 }
 
 }

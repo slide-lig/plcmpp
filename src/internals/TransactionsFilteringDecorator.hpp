@@ -13,6 +13,7 @@ class TransactionsFilteringDecorator : public TransactionsIteratorDecorator
 {
 protected:
 	shp_array_int32 _support;
+	int32_t *_support_fast;
 
 public:
     int32_t transform(int32_t in) override;

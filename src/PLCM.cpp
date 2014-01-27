@@ -18,7 +18,9 @@ using namespace std;
 using namespace util;
 using namespace io;
 
+// initialize static variables
 unique_ptr<PLCM::thread_map> PLCM::threads = nullptr;
+PLCM::thread_map* PLCM::threads_fast = nullptr;
 
 PLCM::PLCM(struct Options *options) {
 	uint32_t nbThreads = options->num_threads;
@@ -29,6 +31,7 @@ PLCM::PLCM(struct Options *options) {
 	}
 	collector = instanciateCollector(options);
 	threads = unique_ptr<thread_map>(new thread_map());
+	threads_fast = threads.get();
 	progressWatch = unique_ptr<ProgressWatcherThread>(
 			new ProgressWatcherThread());
 	for (uint i = 0; i < PLCMCounters::Number_of_PLCMCounters; ++i) {
@@ -57,7 +60,7 @@ void PLCM::lcm(shared_ptr<ExplorationStep> initState, uint32_t num_threads) {
 
 	progressWatch->start();
 
-	for (auto it = threads->begin(); it != threads->end(); ++it) {
+	for (auto it = threads_fast->begin(); it != threads_fast->end(); ++it) {
 		auto t = it->second.get();
 		t->join();
 		for (uint i = 0; i < PLCMCounters::Number_of_PLCMCounters; ++i) {
@@ -69,18 +72,16 @@ void PLCM::lcm(shared_ptr<ExplorationStep> initState, uint32_t num_threads) {
 }
 
 void PLCM::display(ostream& stream,
-		map<string, uint64_t>* additionalcounters) {
-	stream << "{\"name\":\"PLCM\", \"threads\":" << threads->size();
+		map<string, uint64_t>& additionalcounters) {
+	stream << "{\"name\":\"PLCM\", \"threads\":" << threads_fast->size();
 
 	for (uint i = 0; i < PLCMCounters::Number_of_PLCMCounters; ++i) {
 		stream << ", \"" << PLCMCountersNames[(PLCMCounters)i] <<
 				"\":" << globalCounters[i];
 	}
 
-	if (additionalcounters != nullptr) {
-		for (auto entry : (*additionalcounters)) {
-			stream << ", \"" << entry.first << "\":" << entry.second;
-		}
+	for (auto entry : additionalcounters) {
+		stream << ", \"" << entry.first << "\":" << entry.second;
 	}
 
 	stream << "}" << endl;
@@ -190,30 +191,31 @@ void PLCM::standalone(unique_ptr<PLCM::Options> options) {
 	double loadingTime = Helpers::precise_time() - chrono;
 	cerr << "Dataset loaded in " << loadingTime << "s" << endl;
 
-	unique_ptr<PLCM> miner(new PLCM(options.get()));
+	PLCM miner(options.get());
 
 	chrono = Helpers::precise_time();
-	miner->lcm(initState, options->num_threads);
+	miner.lcm(initState, options->num_threads);
 	chrono = Helpers::precise_time() - chrono;
 
-	unique_ptr<map<string, uint64_t> > additionalcounters(
-			new map<string, uint64_t>());
-	(*additionalcounters)["miningTime"] = chrono*1000 /* milliseconds */;
-	(*additionalcounters)["outputtedPatterns"] = miner->closeCollector();
-	(*additionalcounters)["loadingTime"] = loadingTime*1000 /* milliseconds */;
-	(*additionalcounters)["avgPatternLength"] =
-			(uint64_t) miner->getAveragePatternLength();
+	map<string, uint64_t> additionalcounters;
+	additionalcounters["miningTime"] = chrono*1000 /* milliseconds */;
+	additionalcounters["outputtedPatterns"] = miner.closeCollector();
+	additionalcounters["loadingTime"] = loadingTime*1000 /* milliseconds */;
+	additionalcounters["avgPatternLength"] =
+			(uint64_t) miner.getAveragePatternLength();
 
 	if (memoryWatch != nullptr) {
 		memoryWatch->stop();
-		(*additionalcounters)["maxUsedMemory"] = memoryWatch->getMaxUsedMemory();
+		additionalcounters["maxUsedMemory"] = memoryWatch->getMaxUsedMemory();
 	}
 
-	miner->display(cerr, additionalcounters.get());
+	miner.display(cerr, additionalcounters);
 }
 
 PLCMThread* PLCM::getCurrentThread() {
-	return (*threads)[this_thread::get_id()].get();
+	thread_local static PLCMThread *result =
+			(*threads_fast)[this_thread::get_id()].get();
+	return result;
 }
 
 void PLCM::createThreads(int32_t nbThreads) {
@@ -225,12 +227,12 @@ void PLCM::createThreads(int32_t nbThreads) {
 	for (int i = 0; i < nbThreads; i++) {
 		index_cpu = i%num_cpus;
 		auto t = new PLCMThread(i, this, index_cpu);
-		(*threads)[t->getId()] = unique_ptr<PLCMThread>(t);
+		(*threads_fast)[t->getId()] = unique_ptr<PLCMThread>(t);
 	}
 }
 
 void PLCM::initializeAndStartThreads(shared_ptr<ExplorationStep> initState) {
-	for (auto it = threads->begin(); it != threads->end(); ++it) {
+	for (auto it = threads_fast->begin(); it != threads_fast->end(); ++it) {
 		it->second->init(initState);
 		it->second->start();
 	}
@@ -248,18 +250,19 @@ shared_ptr<ExplorationStep> PLCM::stealJob(PLCMThread* thief) {
 	const thread::id thief_id = thief->getId();
 
 	// point to the thread following the thief
-	auto it = threads->begin();
+	auto it = threads_fast->begin();
 	for (; it->first != thief_id; ++it) { }
 	++it;
 
 	// the thief can steal a job to any thread except itself
-	size_t num_stealable_threads = threads->size() -1;
+	size_t num_stealable_threads = threads_fast->size() -1;
 
+	shared_ptr<ExplorationStep> job;
 	// try each thread pointed by it, in turn
 	for (size_t index = 0; index < num_stealable_threads; ++index) {
-		if (it == threads->end())
-			it = threads->begin();
-		auto job = it->second->giveJob(thief);
+		if (it == threads_fast->end())
+			it = threads_fast->begin();
+		job = it->second->giveJob(thief);
 		if (job != nullptr) {
 			//cout << "Job stolen: thread " << it->second->getHumanReadableId()
 			//		<< " to " << thief->getHumanReadableId() << endl;

@@ -17,6 +17,8 @@ class ConsecutiveItemsConcatenatedTidList
 
 private:
     p_array_int32 _indexAndFreqs;
+	int32_t* _indexAndFreqs_fast;
+	uint32_t _indexAndFreqs_size;
 protected:
     uint32_t _storage_size;
 

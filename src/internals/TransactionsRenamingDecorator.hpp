@@ -13,6 +13,7 @@ class TransactionsRenamingDecorator : public TransactionsIteratorDecorator
 {
 protected:
 	shp_array_int32 _rebasing;
+	int32_t *_rebasing_fast;
 
 public:
     int32_t transform(int32_t in) override;

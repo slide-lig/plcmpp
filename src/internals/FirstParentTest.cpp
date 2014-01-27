@@ -38,17 +38,17 @@ bool FirstParentTest::isAincludedInB(
 bool FirstParentTest::allowExploration(int32_t extension,
 		ExplorationStep* state)
 {
-	shp_array_int32 supportCounts = state->counters->supportCounts;
+	unique_ptr<Iterator<int32_t> > candidateOccurrences;
+	unique_ptr<Iterator<int32_t> >  iOccurrences;
+	auto supportCounts = state->counters->supportCounts->array;
 	Dataset* d = state->dataset.get();
 
-	int32_t candidateSupport = (*supportCounts)[extension];
+	int32_t candidateSupport = supportCounts[extension];
 
 	for (int32_t i = state->counters->maxFrequent; i > extension; i--) {
-		if ((*supportCounts)[i] >= candidateSupport) {
-			unique_ptr<Iterator<int32_t> > candidateOccurrences =
-					d->getTidList(extension);
-			unique_ptr<Iterator<int32_t> >  iOccurrences =
-					d->getTidList(i);
+		if (supportCounts[i] >= candidateSupport) {
+			candidateOccurrences = d->getTidList(extension);
+			iOccurrences = d->getTidList(i);
 			if (isAincludedInB(*candidateOccurrences, *iOccurrences)) {
 				PLCM::getCurrentThread()->counters[
 				            PLCM::PLCMCounters::FirstParentTestRejections]++;

@@ -15,6 +15,7 @@ Template_ConsecutiveItemsConcatenatedTidList<T>::Template_ConsecutiveItemsConcat
 		Counters* c, int32_t highestItem) : ConsecutiveItemsConcatenatedTidList(
 				c, highestItem) {
 	_array = new RawArray<T>(_storage_size);
+	_array_fast = _array->array;
 }
 
 template <class T>
@@ -22,6 +23,7 @@ Template_ConsecutiveItemsConcatenatedTidList<T>::Template_ConsecutiveItemsConcat
 		const Template_ConsecutiveItemsConcatenatedTidList<T>& other) :
 		ConsecutiveItemsConcatenatedTidList(other) {
 	_array = new RawArray<T>(*(other._array));
+	_array_fast = _array->array;
 }
 
 template <class T>
@@ -41,7 +43,7 @@ unique_ptr<TidList> Template_ConsecutiveItemsConcatenatedTidList<T>::clone() {
 template <class T>
 int32_t Template_ConsecutiveItemsConcatenatedTidList<T>::read(
 		int32_t position) {
-	return (*_array)[position];
+	return _array_fast[position];
 }
 
 template <class T>
@@ -53,7 +55,7 @@ void Template_ConsecutiveItemsConcatenatedTidList<T>::write(
 				<< endl;
 		abort();
 	}
-	(*_array)[position] = (T) transaction;
+	_array_fast[position] = (T) transaction;
 }
 
 template <class T>

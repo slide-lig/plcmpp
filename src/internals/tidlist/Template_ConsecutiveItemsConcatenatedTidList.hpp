@@ -18,6 +18,7 @@ class Template_ConsecutiveItemsConcatenatedTidList
 private:
 	static const T MAX_VALUE;
     RawArray<T>* _array;
+    T* _array_fast;
 
 public:
     Template_ConsecutiveItemsConcatenatedTidList(
