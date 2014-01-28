@@ -49,14 +49,14 @@ protected:
     bool _first;
 
 protected:
-    inline void set(int32_t begin, int32_t end) override {
+    void set(int32_t begin, int32_t end) override {
     	_nextPos = _concatenated + begin - 1;
     	_end = _concatenated + end;
     	_first = true;
     }
 
 private:
-    inline void findNext() {
+    void findNext() {
     	while (true) {
     		++_nextPos;
     		if (_nextPos == _end) {
@@ -71,7 +71,7 @@ private:
     }
 
 public:
-    inline Template_TransIter(
+    Template_TransIter(
 			IndexedTransactionsList *tlist,
 			T* concatenated_fast) :
 				IndexedReusableIterator(tlist) {
@@ -80,13 +80,13 @@ public:
     	_end = _pos = _nextPos = _concatenated;
     }
 
-    inline int32_t next() override {
+    int32_t next() override {
     	_pos = _nextPos;
     	findNext();
     	return *_pos;
     }
 
-    inline bool hasNext() override {
+    bool hasNext() override {
     	if (_first) {
     		_first = false;
     		findNext();
@@ -94,7 +94,7 @@ public:
     	return _nextPos != nullptr;
     }
 
-    inline void remove() override {
+    void remove() override {
     	*_pos = Template_IndexedTransactionsList<T>::MAX_VALUE;
     }
 };

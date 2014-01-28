@@ -20,12 +20,12 @@ public:
 	T * array;
 	uint32_t length;
 
-	inline RawArray(uint32_t in_length) {
+	RawArray(uint32_t in_length) {
 		length = in_length;
 		array = new T[in_length];
 	}
 
-	inline RawArray(uint32_t in_length, T init_value) :
+	RawArray(uint32_t in_length, T init_value) :
 				RawArray(in_length) {
 		auto the_end = end();
 		for (auto it = begin(); it != the_end; it++)
@@ -34,30 +34,30 @@ public:
 		}
 	}
 
-	inline RawArray(RawArray<T> &other) {
+	RawArray(RawArray<T> &other) {
 		length = other.length;
 		array = new T[length];
 		memcpy(array, other.array, length*sizeof(T));
 	}
 
-	inline ~RawArray()
+	~RawArray()
 	{
 		delete[] array;
 	}
 
-	inline T* begin() {
+	T* begin() {
 		return array;
 	}
 
-	inline T* end() {
+	T* end() {
 		return array + length;
 	}
 
-	inline uint32_t size() {
+	uint32_t size() {
 		return length;
 	}
 
-	inline T& operator[](uint32_t n)
+	T& operator[](uint32_t n)
 	{
 		return *(array + n);
 	}
