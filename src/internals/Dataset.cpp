@@ -9,6 +9,7 @@ using namespace std;
 #include "internals/transactions/TransactionsWriter.hpp"
 #include "internals/transactions/Uint16IndexedTransactionsList.hpp"
 #include "internals/transactions/Uint32IndexedTransactionsList.hpp"
+#include "internals/transactions/Uint8IndexedTransactionsList.hpp"
 #include "internals/tidlist/Uint16ConsecutiveItemsConcatenatedTidList.hpp"
 #include "internals/tidlist/Uint32ConsecutiveItemsConcatenatedTidList.hpp"
 
@@ -28,7 +29,10 @@ Dataset::Dataset(Counters* counters,
 	int32_t maxTransId;
 
 	TransactionsList *trnlist;
-	if (Uint16IndexedTransactionsList::compatible(counters)) {
+	if (Uint8IndexedTransactionsList::compatible(counters)) {
+		trnlist = new Uint8IndexedTransactionsList(counters);
+		maxTransId = Uint8IndexedTransactionsList::getMaxTransId(counters);
+	} else if (Uint16IndexedTransactionsList::compatible(counters)) {
 		trnlist = new Uint16IndexedTransactionsList(counters);
 		maxTransId = Uint16IndexedTransactionsList::getMaxTransId(counters);
 	} else {

@@ -81,30 +81,5 @@ void Template_IndexedTransactionsList<T>::writeItem(
 	writeIndex++;
 }
 
-template <class T>
-Template_TransIter<T>::Template_TransIter(
-			IndexedTransactionsList *tlist,
-			T* concatenated_fast) :
-		BasicTransIter(tlist) {
-	_concatenated = concatenated_fast;
-}
-
-template <class T>
-bool Template_TransIter<T>::isNextPosValid() {
-	return _concatenated[_nextPos] !=
-			Template_IndexedTransactionsList<T>::MAX_VALUE;
-}
-
-template <class T>
-void Template_TransIter<T>::removePosVal() {
-	_concatenated[_pos] =
-			Template_IndexedTransactionsList<T>::MAX_VALUE;
-}
-
-template <class T>
-int32_t Template_TransIter<T>::getPosVal() {
-	return _concatenated[_pos];
-}
-
 }
 }

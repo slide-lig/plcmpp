@@ -56,34 +56,6 @@ public:
 	void setTransactionSupport(int32_t s);
 };
 
-class BasicTransIter : public IndexedReusableIterator
-{
-protected:
-    int32_t _pos;
-    int32_t _nextPos;
-
-private:
-    int32_t _end;
-    bool _first;
-
-protected:
-    void set(int32_t begin, int32_t end) override;
-
-private:
-    void findNext();
-
-protected:
-    virtual bool isNextPosValid() = 0;
-    virtual void removePosVal() = 0;
-    virtual int32_t getPosVal() = 0;
-
-public:
-    BasicTransIter(IndexedTransactionsList *tlist);
-    int32_t next() override;
-    bool hasNext() override;
-    void remove() override;
-};
-
 class Writer : public TransactionsWriter
 {
 private:

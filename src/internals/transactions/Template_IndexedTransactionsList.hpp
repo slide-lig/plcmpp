@@ -39,18 +39,64 @@ protected:
 };
 
 template <class T>
-class Template_TransIter: public BasicTransIter {
-private:
+class Template_TransIter: public IndexedReusableIterator
+{
+protected:
+    T* _pos;
+    T* _nextPos;
 	T* _concatenated;
+	T* _end;
+    bool _first;
+
+protected:
+    inline void set(int32_t begin, int32_t end) override {
+    	_nextPos = _concatenated + begin - 1;
+    	_end = _concatenated + end;
+    	_first = true;
+    }
+
+private:
+    inline void findNext() {
+    	while (true) {
+    		++_nextPos;
+    		if (_nextPos == _end) {
+    			_nextPos = nullptr;
+    			return;
+    		}
+    		if (*_nextPos !=
+        			Template_IndexedTransactionsList<T>::MAX_VALUE) {
+    			return;
+    		}
+    	}
+    }
 
 public:
-	Template_TransIter(
+    inline Template_TransIter(
 			IndexedTransactionsList *tlist,
-			T* concatenated_fast);
-protected:
-	bool isNextPosValid() override;
-	void removePosVal() override;
-	int32_t getPosVal() override;
+			T* concatenated_fast) :
+				IndexedReusableIterator(tlist) {
+    	_concatenated = concatenated_fast;
+    	_first = true;
+    	_end = _pos = _nextPos = _concatenated;
+    }
+
+    inline int32_t next() override {
+    	_pos = _nextPos;
+    	findNext();
+    	return *_pos;
+    }
+
+    inline bool hasNext() override {
+    	if (_first) {
+    		_first = false;
+    		findNext();
+    	}
+    	return _nextPos != nullptr;
+    }
+
+    inline void remove() override {
+    	*_pos = Template_IndexedTransactionsList<T>::MAX_VALUE;
+    }
 };
 
 }

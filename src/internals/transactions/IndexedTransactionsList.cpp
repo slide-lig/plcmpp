@@ -132,49 +132,6 @@ void IndexedReusableIterator::setTransactionSupport(
 	_tlist->setTransSupport(transNum, s);
 }
 
-BasicTransIter::BasicTransIter(IndexedTransactionsList* tlist)
-	: IndexedReusableIterator(tlist) {
-	_first = true;
-	_end = _pos = _nextPos = 0;
-}
-
-void BasicTransIter::set(int32_t begin, int32_t end) {
-	_nextPos = begin - 1;
-	_end = end;
-	_first = true;
-}
-
-void BasicTransIter::findNext() {
-	while (true) {
-		_nextPos++;
-		if (_nextPos == _end) {
-			_nextPos = -1;
-			return;
-		}
-		if (isNextPosValid()) {
-			return;
-		}
-	}
-}
-
-int32_t BasicTransIter::next() {
-	_pos = _nextPos;
-	findNext();
-	return getPosVal();
-}
-
-bool BasicTransIter::hasNext() {
-	if (_first) {
-		_first = false;
-		findNext();
-	}
-	return _nextPos != -1;
-}
-
-void BasicTransIter::remove() {
-	removePosVal();
-}
-
 Writer::Writer(IndexedTransactionsList* tlist) {
 	_tlist = tlist;
 	transId = -1;
