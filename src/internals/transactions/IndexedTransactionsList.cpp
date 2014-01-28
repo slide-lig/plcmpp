@@ -40,13 +40,13 @@ int32_t IndexedTransactionsList::getTransSupport(
 
 void IndexedTransactionsList::setTransSupport(
 		int32_t trans, int32_t s) {
-	int32_t startPos = trans << 1;
-	if (s != 0 && _indexAndFreqs_fast[startPos + 1] == 0) {
+	int32_t* p_support = _indexAndFreqs_fast + ((trans << 1) + 1);
+	if (s != 0 && *p_support == 0) {
 		_size++;
-	} else if (s == 0 && _indexAndFreqs_fast[startPos + 1] != 0) {
+	} else if (s == 0 && *p_support != 0) {
 		_size--;
 	}
-	_indexAndFreqs_fast[startPos + 1] = s;
+	*p_support = s;
 }
 
 unique_ptr<Iterator<int32_t> > IndexedTransactionsList::getIdIterator() {

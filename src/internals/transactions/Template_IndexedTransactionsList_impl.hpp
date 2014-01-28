@@ -106,12 +106,13 @@ inline void Template_IndexedTransactionsList<T>::compress(int32_t prefixEnd) {
 	array_int32 sortList(size());
 	unique_ptr<Iterator<int32_t> > idIter = getIdIterator();
 	auto end = sortList.end();
-	for (auto it = sortList.begin(); it != end; it++) {
+	auto begin = sortList.begin();
+	for (auto it = begin; it != end; it++) {
 		*it = idIter->next();
 	}
 	unique_ptr<NativeIterator> it1 = getIteratorWithType<T>();
 	unique_ptr<NativeIterator> it2 = getIteratorWithType<T>();
-	sort(sortList, 0, sortList.size(), it1.get(), it2.get(), prefixEnd);
+	sort(begin, end, it1.get(), it2.get(), prefixEnd);
 }
 
 /**
@@ -128,48 +129,47 @@ inline void Template_IndexedTransactionsList<T>::compress(int32_t prefixEnd) {
  * @param prefixEnd
  */
 template<class T>
-inline void Template_IndexedTransactionsList<T>::sort(array_int32& array,
-		int32_t start, int32_t end, NativeIterator* it1,
+inline void Template_IndexedTransactionsList<T>::sort(
+		int32_t* start, int32_t* end, NativeIterator* it1,
 		NativeIterator* it2, T prefixEnd) {
-	auto array_fast = array.array;
 	if (start >= end - 1) {
 		// size 0 or 1
 		return;
 	} else if (end - start == 2) {
-		it1->setTransaction(array_fast[start]);
-		it2->setTransaction(array_fast[start + 1]);
+		it1->setTransaction(*start);
+		it2->setTransaction(*(start + 1));
 		merge(it1, it2, prefixEnd);
 	} else {
 		// pick pivot at the middle and put it at the end
-		int32_t pivotPos = start + ((end - start) / 2);
-		int32_t pivotVal = array_fast[pivotPos];
-		array_fast[pivotPos] = array_fast[end - 1];
-		array_fast[end - 1] = pivotVal;
-		int32_t insertInf = start;
-		int32_t insertSup = end - 2;
-		for (int32_t i = start; i <= insertSup;) {
+		int32_t* pivotPos = start + ((end - start) / 2);
+		int32_t pivotVal = *pivotPos;
+		*pivotPos = *(end - 1);
+		*(end - 1) = pivotVal;
+		int32_t* insertInf = start;
+		int32_t* insertSup = end - 2;
+		for (int32_t* i = start; i <= insertSup;) {
 			it1->setTransaction(pivotVal);
-			it2->setTransaction(array_fast[i]);
+			it2->setTransaction(*i);
 			int32_t comp = merge(it1, it2, prefixEnd);
 			if (comp < 0) {
-				int32_t valI = array_fast[i];
-				array_fast[insertInf] = valI;
+				int32_t valI = *i;
+				*insertInf = valI;
 				insertInf++;
 				i++;
 			} else if (comp > 0) {
-				int32_t valI = array_fast[i];
-				array_fast[i] = array_fast[insertSup];
-				array_fast[insertSup] = valI;
+				int32_t valI = *i;
+				*i = *insertSup;
+				*insertSup = valI;
 				insertSup--;
 			} else {
 				i++;
 			}
 		}
-		array_fast[end - 1] = array_fast[insertSup + 1];
+		*(end - 1) = *(insertSup + 1);
 		// Arrays.fill(array, insertInf, insertSup + 2, -1);
-		array_fast[insertSup + 1] = pivotVal;
-		sort(array, start, insertInf, it1, it2, prefixEnd);
-		sort(array, insertSup + 2, end, it1, it2, prefixEnd);
+		*(insertSup + 1) = pivotVal;
+		sort(start, insertInf, it1, it2, prefixEnd);
+		sort(insertSup + 2, end, it1, it2, prefixEnd);
 	}
 }
 

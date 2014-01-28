@@ -46,7 +46,7 @@ public:
 	static int32_t getMaxTransId(Counters* c);
 
 private:
-    static void sort(array_int32 &array, int32_t start, int32_t end,
+    static void sort(int32_t* start, int32_t* end,
     		NativeIterator *it1,
     		NativeIterator *it2,
     		T prefixEnd);
