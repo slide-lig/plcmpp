@@ -216,10 +216,7 @@ inline int32_t Template_IndexedTransactionsList<T>::merge(
 								return 1;
 							} else {
 								t1->remove();
-								while (t1->hasNext()) {
-									t1Item = t1->next();
-									t1->remove();
-								}
+								t1->removeAllNextItems();
 								t1->setTransactionSupport(t1->getTransactionSupport() + t2->getTransactionSupport());
 								t2->setTransactionSupport(0);
 								return 0;
@@ -261,10 +258,7 @@ inline int32_t Template_IndexedTransactionsList<T>::merge(
 					t2Item = t2->next();
 					continue;
 				} else {
-					while (t1->hasNext()) {
-						t1Item = t1->next();
-						t1->remove();
-					}
+					t1->removeAllNextItems();
 					t1->setTransactionSupport(t1->getTransactionSupport() + t2->getTransactionSupport());
 					t2->setTransactionSupport(0);
 					return 0;
@@ -289,10 +283,7 @@ inline int32_t Template_IndexedTransactionsList<T>::merge(
 					t2Item = t2->next();
 				} else {
 					t1->remove();
-					while (t1->hasNext()) {
-						t1Item = t1->next();
-						t1->remove();
-					}
+					t1->removeAllNextItems();
 					t1->setTransactionSupport(t1->getTransactionSupport() + t2->getTransactionSupport());
 					t2->setTransactionSupport(0);
 					return 0;

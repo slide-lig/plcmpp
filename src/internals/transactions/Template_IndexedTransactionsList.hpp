@@ -142,6 +142,15 @@ public:
     void remove() override {
     	*_pos = Template_IndexedTransactionsList<T>::MAX_VALUE;
     }
+
+    void removeAllNextItems() override {
+    	if (_nextPos != nullptr)
+    	{
+    		for (; _nextPos < _end; ++_nextPos)
+    			*_nextPos = Template_IndexedTransactionsList<T>::MAX_VALUE;
+    	}
+    	_nextPos = nullptr; // for safety
+    }
 };
 
 }
