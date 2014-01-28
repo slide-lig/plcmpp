@@ -32,30 +32,6 @@ IndexedTransactionsList::~IndexedTransactionsList() {
 	delete _indexAndFreqs;
 }
 
-void IndexedTransactionsList::positionIterator(
-		int32_t transaction, IndexedReusableIterator* iter) {
-
-	uint32_t startPos = transaction << 1;
-	if (startPos >= _indexAndFreqs_size ||
-			_indexAndFreqs_fast[startPos] == -1) {
-		cerr << "transaction " << transaction <<
-				" does not exist! Aborting." << endl;
-		abort();
-	} else {
-		uint32_t endPos = startPos + 2;
-		int32_t end;
-		if (endPos < _indexAndFreqs_size) {
-			end = _indexAndFreqs_fast[endPos];
-			if (end == -1) {
-				end = writeIndex;
-			}
-		} else {
-			end = writeIndex;
-		}
-		iter->set(_indexAndFreqs_fast[startPos], end);
-	}
-}
-
 int32_t IndexedTransactionsList::getTransSupport(
 		int32_t trans) {
 	int32_t startPos = trans << 1;
@@ -109,27 +85,6 @@ int32_t IndexedTransactionsList::findNext(int32_t nextPos) {
 
 int32_t IndexedTransactionsList::size() {
 	return _size;
-}
-
-IndexedReusableIterator::IndexedReusableIterator(
-		IndexedTransactionsList* tlist) {
-	_tlist = tlist;
-	transNum = 0;
-}
-
-void IndexedReusableIterator::setTransaction(
-		int32_t transaction) {
-	transNum = transaction;
-	_tlist->positionIterator(transaction, this);
-}
-
-int32_t IndexedReusableIterator::getTransactionSupport() {
-	return _tlist->getTransSupport(transNum);
-}
-
-void IndexedReusableIterator::setTransactionSupport(
-		int32_t s) {
-	_tlist->setTransSupport(transNum, s);
 }
 
 Writer::Writer(IndexedTransactionsList* tlist) {

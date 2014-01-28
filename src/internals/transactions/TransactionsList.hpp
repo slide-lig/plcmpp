@@ -28,17 +28,7 @@ public:
     virtual unique_ptr<Iterator<int32_t>> getIdIterator() = 0;
     virtual unique_ptr<TransactionsWriter> getWriter() = 0;
     virtual int32_t size() = 0;
-    virtual void compress(int32_t prefixEnd);
-
-private:
-    static void sort(array_int32 &array, int32_t start, int32_t end,
-    		ReusableTransactionIterator *it1,
-    		ReusableTransactionIterator *it2,
-    		int32_t prefixEnd);
-    static int32_t merge(
-    		ReusableTransactionIterator *it1,
-    		ReusableTransactionIterator *it2,
-    		int32_t prefixEnd);
+    virtual void compress(int32_t prefixEnd) = 0;
 };
 
 }

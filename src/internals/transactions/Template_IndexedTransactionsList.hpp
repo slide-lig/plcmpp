@@ -11,10 +11,14 @@ class Counters;
 
 namespace transactions {
 
+template <class T, class IteratorT>
+class Template_IndexedReusableIterator;
+
 template <class T>
 class Template_IndexedTransactionsList: public IndexedTransactionsList {
 
 private:
+	typedef Template_ReusableTransactionIterator<T> NativeIterator;
 	RawArray<T>* _concatenated;
 	T* _concatenated_fast;
 
@@ -28,18 +32,59 @@ public:
 			const Template_IndexedTransactionsList& other);
 	~Template_IndexedTransactionsList();
 
+	template <class IteratorT>
+	unique_ptr<Template_ReusableTransactionIterator<IteratorT> > getIteratorWithType();
+	template <class IteratorT>
+	void positionIterator(int32_t transaction,
+			Template_IndexedReusableIterator<T, IteratorT> *iter);
+
 	unique_ptr<ReusableTransactionIterator> getIterator() override;
 	unique_ptr<TransactionsList> clone() override;
+    void compress(int32_t prefixEnd) override;
 
 	static bool compatible(Counters* c);
 	static int32_t getMaxTransId(Counters* c);
+
+private:
+    static void sort(array_int32 &array, int32_t start, int32_t end,
+    		NativeIterator *it1,
+    		NativeIterator *it2,
+    		T prefixEnd);
+    static int32_t merge(
+    		NativeIterator *it1,
+    		NativeIterator *it2,
+    		T prefixEnd);
 
 protected:
 	void writeItem(int32_t item) override;
 };
 
-template <class T>
-class Template_TransIter: public IndexedReusableIterator
+template <class T, class IteratorT>
+class Template_IndexedReusableIterator: public Template_ReusableTransactionIterator<IteratorT> {
+private:
+	int transNum;
+	Template_IndexedTransactionsList<T> *_tlist;
+
+public:
+	Template_IndexedReusableIterator(Template_IndexedTransactionsList<T> *tlist) {
+		_tlist = tlist;
+		transNum = 0;
+	}
+	virtual void set(int32_t begin, int32_t end) = 0;
+	void setTransaction(int32_t transaction)  {
+		transNum = transaction;
+		_tlist->positionIterator(transaction, this);
+	}
+	int32_t getTransactionSupport(){
+		return _tlist->getTransSupport(transNum);
+	}
+	void setTransactionSupport(int32_t s){
+		_tlist->setTransSupport(transNum, s);
+	}
+};
+
+template <class T, class IteratorT>
+class Template_TransIter: public Template_IndexedReusableIterator<T, IteratorT>
 {
 protected:
     T* _pos;
@@ -72,15 +117,15 @@ private:
 
 public:
     Template_TransIter(
-			IndexedTransactionsList *tlist,
+    		Template_IndexedTransactionsList<T> *tlist,
 			T* concatenated_fast) :
-				IndexedReusableIterator(tlist) {
+				Template_IndexedReusableIterator<T, IteratorT>(tlist) {
     	_concatenated = concatenated_fast;
     	_first = true;
     	_end = _pos = _nextPos = _concatenated;
     }
 
-    int32_t next() override {
+    IteratorT next() override {
     	_pos = _nextPos;
     	findNext();
     	return *_pos;

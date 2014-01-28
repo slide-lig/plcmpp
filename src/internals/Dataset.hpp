@@ -16,7 +16,6 @@ using namespace util;
 namespace internals {
 
 class TransactionsIterable;
-class TransactionReader;
 class Counters;
 
 /**

@@ -43,9 +43,42 @@ Template_IndexedTransactionsList<T>::~Template_IndexedTransactionsList()
 }
 
 template <class T>
+template <class IteratorT>
+unique_ptr<Template_ReusableTransactionIterator<IteratorT> > Template_IndexedTransactionsList<T>::getIteratorWithType() {
+	return unique_ptr<Template_ReusableTransactionIterator<IteratorT> >(
+			new Template_TransIter<T, IteratorT>(this, _concatenated_fast));
+}
+
+template <class T>
+template <class IteratorT>
+void Template_IndexedTransactionsList<T>::positionIterator(
+		int32_t transaction,
+		Template_IndexedReusableIterator<T, IteratorT>* iter)
+{
+	uint32_t startPos = transaction << 1;
+	if (startPos >= _indexAndFreqs_size ||
+			_indexAndFreqs_fast[startPos] == -1) {
+		cerr << "transaction " << transaction <<
+				" does not exist! Aborting." << endl;
+		abort();
+	} else {
+		uint32_t endPos = startPos + 2;
+		int32_t end;
+		if (endPos < _indexAndFreqs_size) {
+			end = _indexAndFreqs_fast[endPos];
+			if (end == -1) {
+				end = writeIndex;
+			}
+		} else {
+			end = writeIndex;
+		}
+		iter->set(_indexAndFreqs_fast[startPos], end);
+	}
+}
+
+template <class T>
 unique_ptr<ReusableTransactionIterator> Template_IndexedTransactionsList<T>::getIterator() {
-	return unique_ptr<ReusableTransactionIterator>(
-			new Template_TransIter<T>(this, _concatenated_fast));
+	return getIteratorWithType<int32_t>();
 }
 
 template <class T>
@@ -66,6 +99,208 @@ template <class T>
 int32_t Template_IndexedTransactionsList<T>::getMaxTransId(
 		Counters* c) {
 	return c->distinctTransactionsCount - 1;
+}
+
+template<class T>
+inline void Template_IndexedTransactionsList<T>::compress(int32_t prefixEnd) {
+	array_int32 sortList(size());
+	unique_ptr<Iterator<int32_t> > idIter = getIdIterator();
+	auto end = sortList.end();
+	for (auto it = sortList.begin(); it != end; it++) {
+		*it = idIter->next();
+	}
+	unique_ptr<NativeIterator> it1 = getIteratorWithType<T>();
+	unique_ptr<NativeIterator> it2 = getIteratorWithType<T>();
+	sort(sortList, 0, sortList.size(), it1.get(), it2.get(), prefixEnd);
+}
+
+/**
+ * This is NOT a standard quicksort. Transactions with same prefix as the
+ * pivot are left out the rest of the sort because they have been merged in
+ * the pivot. Consequence: in the recursion, there is some space between
+ * left sublist and right sublist (besides the pivot itself).
+ *
+ * @param array
+ * @param start
+ * @param end
+ * @param it1
+ * @param it2
+ * @param prefixEnd
+ */
+template<class T>
+inline void Template_IndexedTransactionsList<T>::sort(array_int32& array,
+		int32_t start, int32_t end, NativeIterator* it1,
+		NativeIterator* it2, T prefixEnd) {
+	auto array_fast = array.array;
+	if (start >= end - 1) {
+		// size 0 or 1
+		return;
+	} else if (end - start == 2) {
+		it1->setTransaction(array_fast[start]);
+		it2->setTransaction(array_fast[start + 1]);
+		merge(it1, it2, prefixEnd);
+	} else {
+		// pick pivot at the middle and put it at the end
+		int32_t pivotPos = start + ((end - start) / 2);
+		int32_t pivotVal = array_fast[pivotPos];
+		array_fast[pivotPos] = array_fast[end - 1];
+		array_fast[end - 1] = pivotVal;
+		int32_t insertInf = start;
+		int32_t insertSup = end - 2;
+		for (int32_t i = start; i <= insertSup;) {
+			it1->setTransaction(pivotVal);
+			it2->setTransaction(array_fast[i]);
+			int32_t comp = merge(it1, it2, prefixEnd);
+			if (comp < 0) {
+				int32_t valI = array_fast[i];
+				array_fast[insertInf] = valI;
+				insertInf++;
+				i++;
+			} else if (comp > 0) {
+				int32_t valI = array_fast[i];
+				array_fast[i] = array_fast[insertSup];
+				array_fast[insertSup] = valI;
+				insertSup--;
+			} else {
+				i++;
+			}
+		}
+		array_fast[end - 1] = array_fast[insertSup + 1];
+		// Arrays.fill(array, insertInf, insertSup + 2, -1);
+		array_fast[insertSup + 1] = pivotVal;
+		sort(array, start, insertInf, it1, it2, prefixEnd);
+		sort(array, insertSup + 2, end, it1, it2, prefixEnd);
+	}
+}
+
+template<class T>
+inline int32_t Template_IndexedTransactionsList<T>::merge(
+		NativeIterator* t1, NativeIterator* t2,
+		T prefixEnd) {
+	if (!t1->hasNext()) {
+		if (!t2->hasNext() || t2->next() > prefixEnd) {
+			t1->setTransactionSupport(t1->getTransactionSupport() + t2->getTransactionSupport());
+			t2->setTransactionSupport(0);
+			return 0;
+		} else {
+			return -1;
+		}
+	} else if (!t2->hasNext()) {
+		if (t1->next() > prefixEnd) {
+			t1->remove();
+			while (t1->hasNext()) {
+				t1->remove();
+			}
+			t1->setTransactionSupport(t1->getTransactionSupport() + t2->getTransactionSupport());
+			t2->setTransactionSupport(0);
+			return 0;
+		} else {
+			return 1;
+		}
+	}
+	T t1Item = t1->next();
+	T t2Item = t2->next();
+	while (true) {
+		if (t1Item < prefixEnd) {
+			if (t2Item < prefixEnd) {
+				if (t1Item != t2Item) {
+					return t1Item - t2Item;
+				} else {
+					if (t1->hasNext()) {
+						t1Item = t1->next();
+						if (t2->hasNext()) {
+							t2Item = t2->next();
+							continue;
+						} else {
+							if (t1Item < prefixEnd) {
+								return 1;
+							} else {
+								t1->remove();
+								while (t1->hasNext()) {
+									t1Item = t1->next();
+									t1->remove();
+								}
+								t1->setTransactionSupport(t1->getTransactionSupport() + t2->getTransactionSupport());
+								t2->setTransactionSupport(0);
+								return 0;
+							}
+						}
+					} else {
+						if (t2->hasNext()) {
+							t2Item = t2->next();
+							if (t2Item < prefixEnd) {
+								return -1;
+							} else {
+								t1->setTransactionSupport(t1->getTransactionSupport() + t2->getTransactionSupport());
+								t2->setTransactionSupport(0);
+								return 0;
+							}
+						} else {
+							t1->setTransactionSupport(t1->getTransactionSupport() + t2->getTransactionSupport());
+							t2->setTransactionSupport(0);
+							return 0;
+						}
+					}
+				}
+			} else {
+				return -1;
+			}
+		} else {
+			if (t2Item < prefixEnd) {
+				return 1;
+			} else {
+				break;
+			}
+		}
+	}
+	while (true) {
+		if (t1Item == t2Item) {
+			if (t1->hasNext()) {
+				if (t2->hasNext()) {
+					t1Item = t1->next();
+					t2Item = t2->next();
+					continue;
+				} else {
+					while (t1->hasNext()) {
+						t1Item = t1->next();
+						t1->remove();
+					}
+					t1->setTransactionSupport(t1->getTransactionSupport() + t2->getTransactionSupport());
+					t2->setTransactionSupport(0);
+					return 0;
+				}
+			} else {
+				t1->setTransactionSupport(t1->getTransactionSupport() + t2->getTransactionSupport());
+				t2->setTransactionSupport(0);
+				return 0;
+			}
+		} else {
+			if (t1Item < t2Item) {
+				t1->remove();
+				if (t1->hasNext()) {
+					t1Item = t1->next();
+				} else {
+					t1->setTransactionSupport(t1->getTransactionSupport() + t2->getTransactionSupport());
+					t2->setTransactionSupport(0);
+					return 0;
+				}
+			} else {
+				if (t2->hasNext()) {
+					t2Item = t2->next();
+				} else {
+					t1->remove();
+					while (t1->hasNext()) {
+						t1Item = t1->next();
+						t1->remove();
+					}
+					t1->setTransactionSupport(t1->getTransactionSupport() + t2->getTransactionSupport());
+					t2->setTransactionSupport(0);
+					return 0;
+				}
+			}
+		}
+	}
+	return 0;
 }
 
 template <class T>

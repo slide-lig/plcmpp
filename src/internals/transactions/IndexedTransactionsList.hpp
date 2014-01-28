@@ -12,11 +12,9 @@ using namespace util;
 namespace internals {
 namespace transactions {
 
-class IndexedReusableIterator;
-
 class IndexedTransactionsList: public TransactionsList {
 
-private:
+protected:
 	p_array_int32 _indexAndFreqs;
 	int32_t* _indexAndFreqs_fast;
 	uint32_t _indexAndFreqs_size;
@@ -30,8 +28,6 @@ public:
 	IndexedTransactionsList(int32_t nbTransactions);
 	~IndexedTransactionsList();
 
-	void positionIterator(int32_t transaction,
-			IndexedReusableIterator *iter);
 	int32_t getTransSupport(int32_t trans);
 	void setTransSupport(int32_t trans, int32_t s);
 	void beginTransaction(int32_t transId, int32_t support);
@@ -41,19 +37,6 @@ public:
 	unique_ptr<Iterator<int32_t>> getIdIterator() override;
 	unique_ptr<TransactionsWriter> getWriter() override;
 	int32_t size() override;
-};
-
-class IndexedReusableIterator: public ReusableTransactionIterator {
-private:
-	int transNum;
-	IndexedTransactionsList *_tlist;
-
-public:
-	IndexedReusableIterator(IndexedTransactionsList *tlist);
-	virtual void set(int32_t begin, int32_t end) = 0;
-	void setTransaction(int32_t transaction);
-	int32_t getTransactionSupport();
-	void setTransactionSupport(int32_t s);
 };
 
 class Writer : public TransactionsWriter
