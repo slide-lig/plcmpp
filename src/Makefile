@@ -6,7 +6,7 @@ CXX=g++
 RM=rm -f
 CPPFLAGS=-I. -Wall -c -fmessage-length=0 -std=gnu++11 -pthread -march=native
 LDFLAGS=-std=gnu++11 -pthread -march=native
-LDLIBS=
+LDLIBS=-ltcmalloc_minimal
 
 ifeq ($(DEBUG),1)
 	CPPFLAGS += -g3 -Og -fno-omit-frame-pointer
