@@ -131,7 +131,7 @@ inline void Template_IndexedTransactionsList<T>::compress(int32_t prefixEnd) {
 template<class T>
 inline void Template_IndexedTransactionsList<T>::sort(
 		int32_t* start, int32_t* end, NativeIterator* it1,
-		NativeIterator* it2, T prefixEnd) {
+		NativeIterator* it2, int32_t prefixEnd) {
 	if (start >= end - 1) {
 		// size 0 or 1
 		return;
@@ -176,7 +176,7 @@ inline void Template_IndexedTransactionsList<T>::sort(
 template<class T>
 inline int32_t Template_IndexedTransactionsList<T>::merge(
 		NativeIterator* t1, NativeIterator* t2,
-		T prefixEnd) {
+		int32_t prefixEnd) {
 	if (!t1->hasNext()) {
 		if (!t2->hasNext() || t2->next() > prefixEnd) {
 			t1->setTransactionSupport(t1->getTransactionSupport() + t2->getTransactionSupport());
@@ -198,8 +198,8 @@ inline int32_t Template_IndexedTransactionsList<T>::merge(
 			return 1;
 		}
 	}
-	T t1Item = t1->next();
-	T t2Item = t2->next();
+	int32_t t1Item = t1->next();
+	int32_t t2Item = t2->next();
 	while (true) {
 		if (t1Item < prefixEnd) {
 			if (t2Item < prefixEnd) {

@@ -49,11 +49,11 @@ private:
     static void sort(int32_t* start, int32_t* end,
     		NativeIterator *it1,
     		NativeIterator *it2,
-    		T prefixEnd);
+    		int32_t prefixEnd);
     static int32_t merge(
     		NativeIterator *it1,
     		NativeIterator *it2,
-    		T prefixEnd);
+    		int32_t prefixEnd);
 
 protected:
 	void writeItem(int32_t item) override;
