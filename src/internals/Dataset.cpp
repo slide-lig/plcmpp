@@ -10,6 +10,7 @@ using namespace std;
 #include "internals/transactions/Uint16IndexedTransactionsList.hpp"
 #include "internals/transactions/Uint32IndexedTransactionsList.hpp"
 #include "internals/transactions/Uint8IndexedTransactionsList.hpp"
+#include "internals/tidlist/Uint8ConsecutiveItemsConcatenatedTidList.hpp"
 #include "internals/tidlist/Uint16ConsecutiveItemsConcatenatedTidList.hpp"
 #include "internals/tidlist/Uint32ConsecutiveItemsConcatenatedTidList.hpp"
 
@@ -42,7 +43,10 @@ Dataset::Dataset(Counters* counters,
 	_transactions = unique_ptr<TransactionsList>(trnlist);
 
 	TidList *tidlist;
-	if (Uint16ConsecutiveItemsConcatenatedTidList::compatible(maxTransId)) {
+	if (Uint8ConsecutiveItemsConcatenatedTidList::compatible(maxTransId)) {
+		tidlist = new Uint8ConsecutiveItemsConcatenatedTidList(
+				counters, tidListBound);
+	} else if (Uint16ConsecutiveItemsConcatenatedTidList::compatible(maxTransId)) {
 		tidlist = new Uint16ConsecutiveItemsConcatenatedTidList(
 				counters, tidListBound);
 	} else {
