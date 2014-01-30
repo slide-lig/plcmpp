@@ -7,5 +7,5 @@ internals::tidlist::TidList::TidList() {
 internals::tidlist::TidList::~TidList() {
 }
 
-internals::tidlist::TidList::TIntIterable::~TIntIterable() {
+internals::tidlist::TidList::ItemTidList::~ItemTidList() {
 }

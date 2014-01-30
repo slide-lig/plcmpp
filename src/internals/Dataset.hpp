@@ -38,7 +38,7 @@ public:
     unique_ptr<TransactionsIterable> getSupport(
     						int32_t item);
     unique_ptr<ReusableTransactionIterator> getTransactionIterator();
-    unique_ptr<Iterator<int32_t> > getTidList(int32_t item);
+    unique_ptr<Iterator<int32_t> > getItemTidListIterator(int32_t item);
 
     Dataset(Counters* counters, Iterator<TransactionReader*>* transactions);
     /**
@@ -64,12 +64,12 @@ protected:
 class TransactionsIterable
 {
 protected:
-	unique_ptr<TidList::TIntIterable> _tids;
+	unique_ptr<TidList::ItemTidList> _tids;
 	Dataset *_dataset;
 
 public:
     TransactionsIterable(Dataset *dataset,
-    		unique_ptr<TidList::TIntIterable> tidList);
+    		unique_ptr<TidList::ItemTidList> tidList);
     unique_ptr<Iterator<TransactionReader*> > iterator();
 };
 

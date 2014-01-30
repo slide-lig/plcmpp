@@ -91,15 +91,15 @@ void Dataset::compress(int32_t coreItem) {
 
 unique_ptr<TransactionsIterable> Dataset::getSupport(int32_t item) {
 	return unique_ptr<TransactionsIterable>(
-			new TransactionsIterable(this, _tidList->getIterable(item)));
+			new TransactionsIterable(this, _tidList->getItemTidList(item)));
 }
 
 unique_ptr<ReusableTransactionIterator> Dataset::getTransactionIterator() {
 	return _transactions->getIterator();
 }
 
-unique_ptr<Iterator<int32_t> > Dataset::getTidList(int32_t item) {
-	return _tidList->get(item);
+unique_ptr<Iterator<int32_t> > Dataset::getItemTidListIterator(int32_t item) {
+	return _tidList->getItemTidList(item)->iterator();
 }
 
 int32_t Dataset::getStoredTransactionsCount() {
@@ -110,7 +110,7 @@ int32_t Dataset::getStoredTransactionsCount() {
 // --------------------------
 
 TransactionsIterable::TransactionsIterable(Dataset* dataset,
-		unique_ptr<TidList::TIntIterable> tidList) {
+		unique_ptr<TidList::ItemTidList> tidList) {
 	_tids = std::move(tidList);
 	_dataset = dataset;
 }

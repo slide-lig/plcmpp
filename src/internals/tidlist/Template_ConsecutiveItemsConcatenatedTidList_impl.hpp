@@ -41,12 +41,6 @@ unique_ptr<TidList> Template_ConsecutiveItemsConcatenatedTidList<T>::clone() {
 }
 
 template <class T>
-int32_t Template_ConsecutiveItemsConcatenatedTidList<T>::read(
-		int32_t position) {
-	return _array_fast[position];
-}
-
-template <class T>
 void Template_ConsecutiveItemsConcatenatedTidList<T>::write(
 		int32_t position, int32_t transaction) {
 	if (transaction > MAX_VALUE) {
@@ -56,6 +50,50 @@ void Template_ConsecutiveItemsConcatenatedTidList<T>::write(
 		abort();
 	}
 	_array_fast[position] = (T) transaction;
+}
+
+template <class T>
+unique_ptr<TidList::ItemTidList>
+Template_ConsecutiveItemsConcatenatedTidList<T>::getItemTidList(
+		int32_t item) {
+
+	uint32_t itemIndex = item << 1;
+	if (itemIndex > _indexAndFreqs_size ||
+			_indexAndFreqs_fast[itemIndex] == -1) {
+		cerr << "item " << item << " has no tidlist" << endl;
+		abort();
+	}
+
+	T* startPos = _array_fast + _indexAndFreqs_fast[itemIndex];
+	T* endPos = startPos + (_indexAndFreqs_fast[itemIndex + 1]);
+	return unique_ptr<TidList::ItemTidList>(
+			new Template_ItemTidList<T>(startPos, endPos));
+}
+
+template<class T>
+internals::tidlist::Template_ItemTidList<T>::Template_ItemTidList(
+		T* in_begin, T* in_end) : begin(in_begin), end(in_end) {
+}
+
+template<class T>
+unique_ptr<Iterator<int32_t> > internals::tidlist::Template_ItemTidList<T>::iterator() {
+	return unique_ptr<Iterator<int32_t> >(
+			new Template_TidIterator<T>(begin, end));
+}
+
+template<class T>
+Template_TidIterator<T>::Template_TidIterator(
+		T* in_begin, T* in_end) : pos(in_begin), end(in_end)  {
+}
+
+template<class T>
+bool internals::tidlist::Template_TidIterator<T>::hasNext() {
+	return pos != end;
+}
+
+template<class T>
+int32_t internals::tidlist::Template_TidIterator<T>::next() {
+	return *(pos++);
 }
 
 template <class T>

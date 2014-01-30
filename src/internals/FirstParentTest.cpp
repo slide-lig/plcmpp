@@ -49,8 +49,8 @@ bool FirstParentTest::allowExploration(int32_t extension,
 
 	for (; i > extension; i--, supportCounts--) {
 		if (*supportCounts >= candidateSupport) {
-			candidateOccurrences = d->getTidList(extension);
-			iOccurrences = d->getTidList(i);
+			candidateOccurrences = d->getItemTidListIterator(extension);
+			iOccurrences = d->getItemTidListIterator(i);
 			if (isAincludedInB(*candidateOccurrences, *iOccurrences)) {
 				PLCM::getCurrentThread()->counters[
 				            PLCM::PLCMCounters::FirstParentTestRejections]++;
