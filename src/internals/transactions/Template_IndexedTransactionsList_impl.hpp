@@ -55,25 +55,14 @@ void Template_IndexedTransactionsList<T>::positionIterator(
 		int32_t transaction,
 		Template_IndexedReusableIterator<T, IteratorT>* iter)
 {
-	uint32_t startPos = transaction << 1;
-	if (startPos >= _indexAndFreqs_size ||
-			_indexAndFreqs_fast[startPos] == -1) {
-		cerr << "transaction " << transaction <<
-				" does not exist! Aborting." << endl;
-		abort();
+	int32_t* startPos = _indexAndFreqs_fast + (transaction << 1);
+	int32_t end;
+	if (transaction +1 < _indexAndFreqs_used_size) {
+		end = *(startPos + 2);
 	} else {
-		uint32_t endPos = startPos + 2;
-		int32_t end;
-		if (endPos < _indexAndFreqs_size) {
-			end = _indexAndFreqs_fast[endPos];
-			if (end == -1) {
-				end = writeIndex;
-			}
-		} else {
-			end = writeIndex;
-		}
-		iter->set(_indexAndFreqs_fast[startPos], end);
+		end = writeIndex;
 	}
+	iter->set(*startPos, end);
 }
 
 template <class T>

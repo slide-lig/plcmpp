@@ -10,9 +10,9 @@ namespace transactions {
 // constructor
 IndexedTransactionsList::IndexedTransactionsList(
 		int32_t nbTransactions) {
-	_indexAndFreqs = new array_int32(nbTransactions << 1, -1);
+	_indexAndFreqs = new array_int32(nbTransactions << 1);
 	_indexAndFreqs_fast = _indexAndFreqs->array;
-	_indexAndFreqs_size = _indexAndFreqs->size();
+	_indexAndFreqs_used_size = 0;
 	_size = 0;
 	writeIndex = 0;
 }
@@ -25,7 +25,7 @@ IndexedTransactionsList::IndexedTransactionsList(
 	writeIndex = other.writeIndex;
 	_indexAndFreqs = new array_int32(*(other._indexAndFreqs));
 	_indexAndFreqs_fast = _indexAndFreqs->array;
-	_indexAndFreqs_size = _indexAndFreqs->size();
+	_indexAndFreqs_used_size = other._indexAndFreqs_used_size;
 }
 
 IndexedTransactionsList::~IndexedTransactionsList() {
@@ -65,18 +65,16 @@ void IndexedTransactionsList::beginTransaction(int32_t transId,
 	if (support != 0) {
 		++_size;
 	}
+	++_indexAndFreqs_used_size;
 }
 
 int32_t IndexedTransactionsList::findNext(int32_t nextPos) {
 	while (true) {
 		nextPos++;
-		uint32_t nextPosStart = nextPos << 1;
-		if (nextPosStart >= _indexAndFreqs_size ||
-				_indexAndFreqs_fast[nextPosStart] == -1) {
-			nextPos = -1;
-			return nextPos;
+		if (nextPos >= _indexAndFreqs_used_size) {
+			return -1;
 		}
-		if (_indexAndFreqs_fast[nextPosStart + 1] > 0) {
+		if (_indexAndFreqs_fast[(nextPos << 1) + 1] > 0) {
 			return nextPos;
 		}
 	}
