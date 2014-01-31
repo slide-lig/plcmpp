@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <cstdint>
 #include <mutex>
 using namespace std;
@@ -64,7 +64,7 @@ private:
 	 * When an extension fails first-parent test, it ends up in this map. Keys
 	 * are non-first-parent items associated to their actual first parent.
 	 */
-	shared_ptr<map<int32_t, int32_t> > failedFPTests;
+	shared_ptr<unordered_map<int32_t, int32_t> > failedFPTests;
 	mutex failedFPTests_mutex;
 
 public:

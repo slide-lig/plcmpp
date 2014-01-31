@@ -9,42 +9,41 @@ using namespace std;
 using namespace util;
 
 namespace io {
-const int32_t FileReader::Storage::STARTUP_STORAGE_SIZE = 64*1024;
 
 int FileReader::CopyReader::getTransactionSupport() {
 	return 1;
 }
 
 int FileReader::CopyReader::next() {
-	return (*(current_trans_current_item++));
+	return (*(current_trans_start++));
 }
 
 bool FileReader::CopyReader::hasNext() {
-	return current_trans_current_item != current_trans_end_items;
+	return current_trans_start != current_trans_end;
 }
 
 FileReader::CopyReader::CopyReader(
 		Storage* storage, p_array_int32 renaming) {
-	_storage = storage;
+	_transactions_iterator = storage->getIterator();
 	_renaming = renaming;
-	next_trans_start = _storage->begin();
-	// used later to show that we have not started reading
+	current_trans_start = nullptr;
+	current_trans_end = nullptr;
 }
 
 bool FileReader::CopyReader::hasMoreTransactions() {
-	return (next_trans_start != _storage->end());
+	return _transactions_iterator.has_more_blocks();
 }
 
 void FileReader::CopyReader::prepareForNextTransaction() {
-	vector<int32_t>::iterator it_renaming_src, it_renaming_dst;
+	int32_t* it_renaming_src;
+	int32_t* it_renaming_dst;
 
-	current_trans_start = next_trans_start;
-	next_trans_start += (*current_trans_start) +1;
-	current_trans_current_item = current_trans_start +1;
+	_transactions_iterator.next_block(
+			current_trans_start, current_trans_end);
 
-	it_renaming_dst = current_trans_current_item;
-	for (	it_renaming_src = current_trans_current_item;
-			it_renaming_src != next_trans_start;
+	it_renaming_dst = current_trans_start;
+	for (	it_renaming_src = current_trans_start;
+			it_renaming_src != current_trans_end;
 			it_renaming_src++) {
 		int32_t renamed = (*_renaming)[*it_renaming_src];
 		if (renamed >= 0) {
@@ -52,8 +51,8 @@ void FileReader::CopyReader::prepareForNextTransaction() {
 		}
 	}
 
-	current_trans_end_items = it_renaming_dst;
-	std::sort(current_trans_current_item, current_trans_end_items);
+	current_trans_end = it_renaming_dst;
+	std::sort(current_trans_start, current_trans_end);
 }
 
 FileReader::LineReader::LineReader(Storage *storage, string &path) {
@@ -96,14 +95,14 @@ int FileReader::LineReader::next() {
 	while (nextChar == ' ')
 		nextChar = _file->get();
 
-	_storage->addNewItem(nextInt);
+	_storage->push_back(nextInt);
 	return nextInt;
 }
 
 bool FileReader::LineReader::hasNext() {
 	bool end_of_transaction = (nextChar == '\n');
 	if (end_of_transaction)
-		_storage->endTransaction();
+		_storage->end_block();
 	return !end_of_transaction;
 }
 
@@ -121,7 +120,7 @@ void FileReader::LineReader::prepareForNextTransaction() {
 	while (nextChar == '\n') {
 		nextChar = _file->get();
 	}
-	_storage->startNewTransaction();
+	_storage->start_block();
 }
 
 void FileReader::close(p_array_int32 renamingMap) {
@@ -151,39 +150,6 @@ FileReader::FileReader(string& path) {
 FileReader::~FileReader() {
 	delete _reader;
 	delete _storage;
-}
-
-FileReader::Storage::Storage() : vector<int32_t>() {
-	reserve(STARTUP_STORAGE_SIZE);
-	current_trans_len = 0;
-}
-
-FileReader::Storage::~Storage() {
-}
-
-void FileReader::Storage::startNewTransaction() {
-	// first integer is the size of the transaction
-	// we reserve it
-	push_back(0);
-	current_trans_len = 0;
-}
-
-void FileReader::Storage::addNewItem(int32_t item) {
-	push_back(item);
-	current_trans_len++;
-}
-
-void FileReader::Storage::endTransaction() {
-	/* we must update the transaction size
-	 * we do not maintain an iterator pointing to the start of
-	 * the transaction (i.e. the place where we will store
-	 * the size) because, while inserting the items,
-	 * if the vector storage is internally resized,
-	 * such an iterator would be invalidated.
-	 * instead we recompute this position here.
-	 */
-	auto new_trans_start = end() - current_trans_len -1;
-	*new_trans_start = current_trans_len;
 }
 
 }

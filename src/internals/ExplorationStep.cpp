@@ -41,7 +41,7 @@ ExplorationStep::ExplorationStep(int32_t minimumSupport,
 
 	candidates = Helpers::unique_to_shared(counters->getExtensionsIterator());
 
-	failedFPTests.reset(new map<int32_t, int32_t>());
+	failedFPTests.reset(new unordered_map<int32_t, int32_t>());
 }
 
 ExplorationStep::ExplorationStep(ExplorationStep* parent,
@@ -74,7 +74,7 @@ ExplorationStep::ExplorationStep(ExplorationStep* parent,
 		dataset = nullptr;
 	} else {
 		failedFPTests.reset(
-				new map<int32_t, int32_t>());
+				new unordered_map<int32_t, int32_t>());
 
 		selector = ExplorationStep::firstParentTestInstance;
 

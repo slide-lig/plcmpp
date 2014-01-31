@@ -1,4 +1,4 @@
-#include <map>
+#include <unordered_map>
 #include <queue>
 #include <memory>
 #include <algorithm>
@@ -119,22 +119,24 @@ Counters::Counters(int32_t minimumSupport,
 		Iterator<TransactionReader*>* transactions) {
 	minSupport = minimumSupport;
 
-	map<int32_t, int32_t> *supportsMap = new map<int32_t, int32_t>();
+	unordered_map<int32_t, int32_t> supportsMap;
 	int biggestItemID = 0;
+	TransactionReader *transaction;
 
 	// item support and transactions counting
 
-	int transactionsCounter = 0;
+	int32_t transactionsCounter = 0;
+	int32_t item, support;
 	while (transactions->hasNext()) {
-		TransactionReader *transaction = transactions->next();
+		transaction = transactions->next();
 		transactionsCounter++;
 
 		while (transaction->hasNext()) {
-			int item = transaction->next();
+			item = transaction->next();
 			biggestItemID = max(biggestItemID, item);
 			// the following works because the initial value
 			// will be 0 if item was not yet present.
-			(*supportsMap)[item]++;
+			supportsMap[item]++;
 		}
 	}
 
@@ -147,19 +149,17 @@ Counters::Counters(int32_t minimumSupport,
 	priority_queue<ItemAndSupport> renamingHeap;
 	p_vec_int32 new_closure = new vec_int32();
 
-	for (auto iterator = supportsMap->begin(); iterator != supportsMap->end();
+	for (auto iterator = supportsMap.begin(); iterator != supportsMap.end();
 			iterator++) {
-		int32_t item = iterator->first;
-		int32_t supportCount = iterator->second;
+		item = iterator->first;
+		support = iterator->second;
 
-		if (supportCount == transactionsCount) {
+		if (support == transactionsCount) {
 			new_closure->push_back(item);
-		} else if (supportCount >= minimumSupport) {
-			renamingHeap.emplace(item, supportCount);
+		} else if (support >= minimumSupport) {
+			renamingHeap.emplace(item, support);
 		} // otherwise item is infrequent : its renaming is already -1, ciao
 	}
-
-	delete supportsMap;
 
 	closure.reset(new_closure);
 	nbFrequents = renamingHeap.size();
@@ -170,21 +170,25 @@ Counters::Counters(int32_t minimumSupport,
 	distinctTransactionsCounts = make_p_array_int32(nbFrequents);
 	reverseRenaming = make_p_array_int32(nbFrequents);
 	int remainingSupportsSum = 0;
+	auto opt_renaming = renaming->array;
+	auto opt_reverseRenaming = reverseRenaming->array;
+	auto opt_supportCounts = supportCounts->array;
+	auto opt_distinctTransactionsCounts = distinctTransactionsCounts->array;
 
 	int newItemID = 0;
 
 	while (!renamingHeap.empty()) {
 		const ItemAndSupport &entry = renamingHeap.top();
-		int32_t item = entry.item();
-		int32_t support = entry.support();
+		item = entry.item();
+		support = entry.support();
 
 		renamingHeap.pop();
 
-		(*renaming)[item] = newItemID;
-		(*reverseRenaming)[newItemID] = item;
+		opt_renaming[item] = newItemID;
+		opt_reverseRenaming[newItemID] = item;
 
-		(*supportCounts)[newItemID] = support;
-		(*distinctTransactionsCounts)[newItemID] = support;
+		opt_supportCounts[newItemID] = support;
+		opt_distinctTransactionsCounts[newItemID] = support;
 
 		remainingSupportsSum += support;
 

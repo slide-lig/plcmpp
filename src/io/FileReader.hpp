@@ -3,9 +3,10 @@
 #include <internals/TransactionReader.hpp>
 #include <util/Iterator.hpp>
 #include <util/shortcuts.h>
-
+#include <util/BlocksStorage.hpp>
 
 using util::Iterator;
+using util::BlocksStorage;
 using util::p_array_int32;
 using internals::TransactionReader;
 
@@ -32,26 +33,7 @@ class FileReader : public Iterator<TransactionReader*>
 private:
 
 	class CopyReader;
-
-	class Storage : public vector<int32_t> {
-	private:
-		static const int32_t STARTUP_STORAGE_SIZE;
-
-		/* transactions are coded the following way:
-		 * - 1st integer is its size
-		 * - next ones are the items
-	     */
-	    vector<int32_t>::iterator current_trans_next_item;
-	    int32_t current_trans_len;
-
-	public:
-	    Storage();
-	    ~Storage();
-
-	    void startNewTransaction();
-	    void addNewItem(int32_t item);
-	    void endTransaction();
-	};
+	typedef BlocksStorage<int32_t> Storage;
 
 	class ChainedTransactionReader : public internals::TransactionReader {
 
@@ -64,12 +46,10 @@ private:
 	class CopyReader : public ChainedTransactionReader {
 
 		private:
-			vector<int32_t>::iterator current_trans_start;
-			vector<int32_t>::iterator next_trans_start;
-			vector<int32_t>::iterator current_trans_current_item;
-			vector<int32_t>::iterator current_trans_end_items;
-			Storage *_storage;
+			Storage::iterator _transactions_iterator;
 			p_array_int32 _renaming;
+			int32_t* current_trans_start;
+			int32_t* current_trans_end;
 
 		/**
 		 * read currentPage[currentPageIndex, to[
