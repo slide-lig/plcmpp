@@ -42,8 +42,16 @@ int PollableThread::run() {
 
 		{
 			unique_lock<mutex> ul(_mutex);
-			_queue_cond_var.wait_until(ul, timeout_date,
-					[=] { return !_queue.empty();} );
+			while (true)
+			{
+				auto status = _queue_cond_var.wait_until(ul, timeout_date);
+
+				if (status == cv_status::timeout)
+					break;
+
+				if (!_queue.empty())
+					break; // otherwise, loop again, it was a spurious wake-up
+			}
 			if (_queue.empty())
 			{
 				request = POLL_TIMEOUT;
