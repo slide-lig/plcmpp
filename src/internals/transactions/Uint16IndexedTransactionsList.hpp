@@ -1,12 +1,12 @@
 
 
 #pragma once
-#include <internals/transactions/Template_IndexedTransactionsList.hpp>
+#include <internals/transactions/IndexedTransactionsList.hpp>
 
 namespace internals {
 namespace transactions {
 
-typedef Template_IndexedTransactionsList<uint16_t> Uint16IndexedTransactionsList;
+typedef IndexedTransactionsList<uint16_t> Uint16IndexedTransactionsList;
 
 }
 }

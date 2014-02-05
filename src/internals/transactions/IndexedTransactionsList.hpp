@@ -12,55 +12,94 @@ using namespace util;
 namespace internals {
 namespace transactions {
 
+template <class T, class IteratorT>
+class Template_IndexedReusableIterator;
+
+template <class T>
 class IndexedTransactionsList: public TransactionsList {
 
 protected:
-	p_array_int32 _indexAndFreqs;
-	int32_t* _indexAndFreqs_fast;
-	int32_t _indexAndFreqs_used_size;
-	int32_t _size;
+	typedef Template_ReusableTransactionIterator<T> NativeIterator;
+	T* _concatenated;
 
-protected:
-	int32_t writeIndex;
-	IndexedTransactionsList(const IndexedTransactionsList& other);
+	typedef struct {
+		T* start_transaction;
+		T* end_transaction;
+		T* end_prefix;
+		int32_t support;
+	} descTransaction;
+
+	descTransaction* _transactions_info;
+	int32_t _num_allocated_transactions;
+	int32_t _num_real_transactions;
+	T* _writeIndex;
 
 public:
-	IndexedTransactionsList(int32_t nbTransactions);
+	static const T MAX_VALUE;
+
+	IndexedTransactionsList(Counters* c);
+	IndexedTransactionsList(int32_t transactionsLength,
+			int32_t nbTransactions);
 	~IndexedTransactionsList();
 
 	int32_t getTransSupport(int32_t trans);
 	void setTransSupport(int32_t trans, int32_t s);
 	void beginTransaction(int32_t transId, int32_t support);
-	virtual void writeItem(int32_t item) = 0;
+	void endTransaction(int32_t transId, int32_t core_item);
+	void writeItem(int32_t item);
 	int32_t findNext(int32_t nextPos);
 
 	unique_ptr<Iterator<int32_t>> getIdIterator() override;
 	unique_ptr<TransactionsWriter> getWriter() override;
 	int32_t size() override;
+	unique_ptr<ReusableTransactionIterator> getIterator() override;
+    void compress() override;
+
+	static bool compatible(Counters* c);
+	static int32_t getMaxTransId(Counters* c);
+
+	template <class IteratorT>
+	void positionIterator(int32_t transaction,
+			Template_IndexedReusableIterator<T, IteratorT> *iter);
+
+private:
+	template <class IteratorT>
+	unique_ptr<Template_ReusableTransactionIterator<IteratorT> > getIteratorWithType();
+
+    static void sort(
+    		descTransaction* transactions_info,
+    		int32_t* start, int32_t* end);
+    static int32_t merge(
+    		descTransaction* transactions_info,
+    		int32_t t1,
+    		int32_t t2);
+
 };
 
+template <class T>
 class Writer : public TransactionsWriter
 {
 private:
     int32_t transId;
-    IndexedTransactionsList *_tlist;
+    IndexedTransactionsList<T> *_tlist;
 
 public:
-    Writer(IndexedTransactionsList *tlist);
+    Writer(IndexedTransactionsList<T> *tlist);
     int32_t beginTransaction(int32_t support) override;
     void addItem(int32_t item) override;
-    void endTransaction() override;
+    void endTransaction(int32_t core_item) override;
 };
 
+template <class T>
 class IdIter : public Iterator<int32_t>
 {
 private:
     int32_t pos;
     int32_t nextPos;
-    IndexedTransactionsList *_tlist;
+    IndexedTransactionsList<T> *_tlist;
 
 public:
-    IdIter(IndexedTransactionsList *tlist);
+    IdIter(IndexedTransactionsList<T> *tlist);
     int32_t next() override;
     bool hasNext() override;
 
@@ -70,3 +109,7 @@ private:
 
 }
 }
+
+/* Template classes, we need their definition */
+#include <internals/transactions/IndexedTransactionsList_impl_main.hpp>
+#include <internals/transactions/IndexedTransactionsList_impl_compress.hpp>

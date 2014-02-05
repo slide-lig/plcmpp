@@ -23,12 +23,11 @@ public:
     TransactionsList();
     virtual ~TransactionsList();
 
-    virtual unique_ptr<TransactionsList> clone() = 0;
     virtual unique_ptr<ReusableTransactionIterator> getIterator() = 0;
     virtual unique_ptr<Iterator<int32_t>> getIdIterator() = 0;
     virtual unique_ptr<TransactionsWriter> getWriter() = 0;
     virtual int32_t size() = 0;
-    virtual void compress(int32_t prefixEnd) = 0;
+    virtual void compress() = 0;
 };
 
 }

@@ -22,11 +22,15 @@ namespace internals {
 Dataset::Dataset(
 		Counters* counters,
 		Iterator<TransactionReader*>* transactions) :
-				Dataset(counters, transactions, INT_MAX) {
+				Dataset(counters, transactions, INT_MAX, -1) {
 }
 
-Dataset::Dataset(Counters* counters,
-		Iterator<TransactionReader*>* transactions, int32_t tidListBound) {
+Dataset::Dataset(
+		Counters* counters,
+		Iterator<TransactionReader*>* transactions,
+		int32_t tidListBound,
+		int32_t coreItem) {
+
 	int32_t maxTransId;
 
 	TransactionsList *trnlist;
@@ -72,25 +76,16 @@ Dataset::Dataset(Counters* counters,
 				}
 			}
 
-			writer->endTransaction();
+			writer->endTransaction(coreItem);
 		}
 	}
 }
 
-Dataset::Dataset(const Dataset& other) {
-	_transactions = other._transactions->clone();
-	_tidList = other._tidList->clone();
-}
-
-unique_ptr<Dataset> Dataset::clone() {
-	return unique_ptr<Dataset>(
-			new Dataset(*this));
-}
-
 void Dataset::compress(int32_t coreItem) {
+	//cout << coreItem << endl;
 	PLCM::getCurrentThread()->counters[
 	         PLCM::PLCMCounters::TransactionsCompressions]++;
-	_transactions->compress(coreItem);
+	_transactions->compress();
 }
 
 unique_ptr<TransactionsIterable> Dataset::getSupport(int32_t item) {

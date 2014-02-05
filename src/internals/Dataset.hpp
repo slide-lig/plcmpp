@@ -34,7 +34,6 @@ protected:
 
 public:
     void compress(int32_t coreItem);
-    unique_ptr<Dataset> clone();
     unique_ptr<TransactionsIterable> getSupport(
     						int32_t item);
     unique_ptr<ReusableTransactionIterator> getTransactionIterator();
@@ -49,10 +48,9 @@ public:
 	 *            - highest item (exclusive) which will have a tidList. set to
 	 *            MAX_VALUE when using predictive pptest.
 	 */
-    Dataset(Counters* counters, Iterator<TransactionReader*>* transactions, int32_t tidListBound);
+    Dataset(Counters* counters, Iterator<TransactionReader*>* transactions, int32_t tidListBound, int32_t coreItem);
 
 protected:
-    Dataset(const Dataset& other);
 	/**
 	 * @return how many transactions (ignoring their weight) are stored behind
 	 *         this dataset

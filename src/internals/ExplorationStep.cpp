@@ -142,7 +142,7 @@ unique_ptr<Dataset> ExplorationStep::instanciateDataset(ExplorationStep* parent,
 					new TransactionsRenamingDecorator(it.get(), renaming));
 
 	Dataset* dataset = new Dataset(
-			counters.get(), filtered.get(), INT_MAX);
+			counters.get(), filtered.get(), INT_MAX, core_item);
 	dataset->compress(core_item);
 	return unique_ptr<Dataset>(dataset);
 }
