@@ -78,13 +78,18 @@ void IndexedTransactionsList<T>::beginTransaction(int32_t transId,
 
 template <class T>
 void IndexedTransactionsList<T>::endTransaction(int32_t transId, int32_t core_item) {
-	_transactions_info[transId].end_transaction = _writeIndex;
-	_transactions_info[transId].end_prefix =
+	descTransaction* desc_trans = _transactions_info + transId;
+	desc_trans->end_transaction = _writeIndex;
+	desc_trans->end_prefix =
 			std::upper_bound(
-					_transactions_info[transId].start_transaction,
-					_transactions_info[transId].end_transaction,
+					desc_trans->start_transaction,
+					desc_trans->end_transaction,
 					core_item
 					);
+	//cout << "t " << transId << endl;
+	desc_trans->prefix_hash = SimpleDigest::digest(
+			desc_trans->start_transaction,
+			desc_trans->end_prefix);
 }
 
 template <class T>

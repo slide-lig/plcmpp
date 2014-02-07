@@ -4,6 +4,7 @@ using namespace std;
 
 #include <internals/transactions/IndexedTransactionsList.hpp>
 #include <internals/Counters.hpp>
+#include <util/SimpleDigest.h>
 
 namespace internals {
 namespace transactions {
@@ -88,8 +89,15 @@ inline int32_t IndexedTransactionsList<T>::merge(
 	descTransaction& info_t1 = transactions_info[t1];
 	descTransaction& info_t2 = transactions_info[t2];
 
-	// check prefix length first
-	auto cmp = (info_t2.end_prefix - info_t2.start_transaction) -
+	// compare prefix hash (caution, hashes are unsigned integers,
+	// a difference is not adequate)
+	if (info_t1.prefix_hash < info_t2.prefix_hash)
+		return 1;
+	if (info_t2.prefix_hash < info_t1.prefix_hash)
+		return -1;
+
+	// compare prefix length
+	int cmp = (info_t2.end_prefix - info_t2.start_transaction) -
 			(info_t1.end_prefix - info_t1.start_transaction);
 
 	if (cmp != 0)
@@ -97,10 +105,14 @@ inline int32_t IndexedTransactionsList<T>::merge(
 
 	// compare prefix
 	cmp = std::memcmp(info_t1.start_transaction, info_t2.start_transaction,
-				(info_t1.end_prefix - info_t1.start_transaction)*sizeof(T*));
+				(info_t1.end_prefix - info_t1.start_transaction)*sizeof(T));
 
 	if (cmp != 0)
+	{
+		ADD_DIGEST_FALSE_POSITIVE(info_t1.start_transaction, info_t1.end_prefix,
+				info_t2.start_transaction, info_t2.end_prefix);
 		return cmp;
+	}
 
 	// same prefix, we should merge
 	info_t1.end_transaction = std::set_intersection(

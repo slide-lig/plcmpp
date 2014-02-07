@@ -14,6 +14,7 @@ using namespace std;
 #include <util/MemoryPeakWatcherThread.hpp>
 #include <util/ProgressWatcherThread.hpp>
 #include <util/Helpers.h>
+#include <util/SimpleDigest.h>
 
 using namespace util;
 using namespace io;
@@ -163,6 +164,8 @@ int PLCM::main(int argc, char** argv) {
 
 	// run the main procedure
 	standalone(move(options) /* transfer ownership */);
+
+	REPORT_DIGEST_STATS();
 	return 0;
 }
 

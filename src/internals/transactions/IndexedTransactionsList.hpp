@@ -6,6 +6,7 @@
 #include <internals/transactions/TransactionsWriter.hpp>
 #include <util/Iterator.hpp>
 #include <util/shortcuts.h>
+#include <util/SimpleDigest.h>
 
 using namespace util;
 
@@ -23,10 +24,11 @@ protected:
 	T* _concatenated;
 
 	typedef struct {
+		SimpleDigest::Type prefix_hash;
+		int32_t support;
 		T* start_transaction;
 		T* end_transaction;
 		T* end_prefix;
-		int32_t support;
 	} descTransaction;
 
 	descTransaction* _transactions_info;
