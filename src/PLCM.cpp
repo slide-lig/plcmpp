@@ -343,9 +343,9 @@ void PLCMThread::run() {
 	// writes
 	bool exit = false;
 	while (!exit) {
-		ExplorationStep *sj = nullptr;
+		shared_ptr<ExplorationStep> sj = nullptr;
 		if (!stackedJobs->empty()) {
-			sj = stackedJobs->back().get();
+			sj = stackedJobs->back();
 
 			unique_ptr<ExplorationStep> extended = sj->next();
 			// iterator is finished, remove it from the stack
