@@ -1,18 +1,10 @@
 
-#include <climits>
-using namespace std;
 
 #include "PLCM.hpp"
 #include "internals/Dataset.hpp"
 #include "internals/Counters.hpp"
 #include "internals/TransactionReader.hpp"
 #include "internals/transactions/TransactionsWriter.hpp"
-#include "internals/transactions/Uint16IndexedTransactionsList.hpp"
-#include "internals/transactions/Uint32IndexedTransactionsList.hpp"
-#include "internals/transactions/Uint8IndexedTransactionsList.hpp"
-#include "internals/tidlist/Uint8ConsecutiveItemsConcatenatedTidList.hpp"
-#include "internals/tidlist/Uint16ConsecutiveItemsConcatenatedTidList.hpp"
-#include "internals/tidlist/Uint32ConsecutiveItemsConcatenatedTidList.hpp"
 
 namespace internals {
 
@@ -21,65 +13,22 @@ namespace internals {
 
 Dataset::Dataset(
 		Counters* counters,
-		Iterator<TransactionReader*>* transactions) :
-				Dataset(counters, transactions, INT_MAX, -1) {
-}
-
-Dataset::Dataset(
-		Counters* counters,
-		Iterator<TransactionReader*>* transactions,
-		int32_t tidListBound,
+		CopyableTransactionsList* item_transactions,
+		shp_array_int32 renaming,
 		int32_t coreItem) {
 
 	int32_t maxTransId;
 
-	TransactionsList *trnlist;
-	if (Uint8IndexedTransactionsList::compatible(counters)) {
-		trnlist = new Uint8IndexedTransactionsList(counters);
-		maxTransId = Uint8IndexedTransactionsList::getMaxTransId(counters);
-	} else if (Uint16IndexedTransactionsList::compatible(counters)) {
-		trnlist = new Uint16IndexedTransactionsList(counters);
-		maxTransId = Uint16IndexedTransactionsList::getMaxTransId(counters);
-	} else {
-		trnlist = new Uint32IndexedTransactionsList(counters);
-		maxTransId = Uint32IndexedTransactionsList::getMaxTransId(counters);
-	}
-	_transactions = unique_ptr<TransactionsList>(trnlist);
-
-	TidList *tidlist;
-	if (Uint8ConsecutiveItemsConcatenatedTidList::compatible(maxTransId)) {
-		tidlist = new Uint8ConsecutiveItemsConcatenatedTidList(
-				counters, tidListBound);
-	} else if (Uint16ConsecutiveItemsConcatenatedTidList::compatible(maxTransId)) {
-		tidlist = new Uint16ConsecutiveItemsConcatenatedTidList(
-				counters, tidListBound);
-	} else {
-		tidlist = new Uint32ConsecutiveItemsConcatenatedTidList(
-				counters, tidListBound);
-	}
-	_tidList = unique_ptr<TidList>(tidlist);
+	_transactions = TransactionsList::newEmptyTransactionList(
+							counters, maxTransId);
+	_tidList = TidList::newEmptyTidList(counters, maxTransId);
 
 	unique_ptr<TransactionsWriter> writer = _transactions->getWriter();
-	while (transactions->hasNext()) {
-		TransactionReader* transaction = transactions->next();
-		if (transaction->getTransactionSupport() != 0 &&
-				transaction->hasNext()) {
-			int32_t transId = writer->beginTransaction(
-					transaction->getTransactionSupport());
 
-			while (transaction->hasNext()) {
-				int32_t item = transaction->next();
-				writer->addItem(item);
-
-				if (item < tidListBound) {
-					_tidList->addTransaction(item, transId);
-				}
-			}
-
-			writer->endTransaction(coreItem);
-		}
-	}
+	item_transactions->copyTo(writer.get(), _tidList.get(),
+			renaming->array, coreItem);
 }
+
 
 void Dataset::compress(int32_t coreItem) {
 	//cout << coreItem << endl;
@@ -88,53 +37,21 @@ void Dataset::compress(int32_t coreItem) {
 	_transactions->compress();
 }
 
-unique_ptr<TransactionsIterable> Dataset::getSupport(int32_t item) {
-	return unique_ptr<TransactionsIterable>(
-			new TransactionsIterable(this, _tidList->getItemTidList(item)));
+
+unique_ptr<TransactionsSubList > Dataset::getTransactionsSubList(int32_t item) {
+	return unique_ptr<TransactionsSubList >(
+			new TransactionsSubList(
+					_transactions.get(), _tidList->getItemTidList(item)));
 }
 
-unique_ptr<ReusableTransactionIterator> Dataset::getTransactionIterator() {
-	return _transactions->getIterator();
-}
 
 unique_ptr<Iterator<int32_t> > Dataset::getItemTidListIterator(int32_t item) {
 	return _tidList->getItemTidList(item)->iterator();
 }
 
+
 int32_t Dataset::getStoredTransactionsCount() {
 	return _transactions->size();
-}
-
-// TransactionsIterable class
-// --------------------------
-
-TransactionsIterable::TransactionsIterable(Dataset* dataset,
-		unique_ptr<TidList::ItemTidList> tidList) {
-	_tids = std::move(tidList);
-	_dataset = dataset;
-}
-
-unique_ptr<Iterator<TransactionReader*> > TransactionsIterable::iterator() {
-	return unique_ptr<Iterator<TransactionReader*> >(
-			new TransactionsIterator(_dataset, _tids->iterator()));
-}
-
-// TransactionsIterator class
-// --------------------------
-
-TransactionsIterator::TransactionsIterator(Dataset* dataset,
-		unique_ptr<Iterator<int32_t> > tids) {
-	_it = std::move(tids);
-	_transIter = dataset->getTransactionIterator();
-}
-
-TransactionReader* TransactionsIterator::next() {
-	_transIter->setTransaction(_it->next());
-	return _transIter.get();
-}
-
-bool TransactionsIterator::hasNext() {
-	return _it->hasNext();
 }
 
 }

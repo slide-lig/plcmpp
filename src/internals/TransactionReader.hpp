@@ -5,16 +5,12 @@ using namespace std;
 
 namespace internals {
 
-template <class T>
-class Template_TransactionReader
+class TransactionReader
 {
 public:
-	virtual ~Template_TransactionReader() {};
+	virtual ~TransactionReader() {};
     virtual int32_t getTransactionSupport() = 0;
-    virtual T next() = 0;
-    virtual bool hasNext() = 0;
+    virtual void getTransactionBounds(int32_t* &begin, int32_t* &end) = 0;
 };
-
-typedef Template_TransactionReader<int32_t> TransactionReader;
 
 }

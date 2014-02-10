@@ -2,7 +2,6 @@
 #pragma once
 
 #include <internals/transactions/TransactionsList.hpp>
-#include <internals/transactions/ReusableTransactionIterator.hpp>
 #include <internals/transactions/TransactionsWriter.hpp>
 #include <util/Iterator.hpp>
 #include <util/shortcuts.h>
@@ -13,31 +12,30 @@ using namespace util;
 namespace internals {
 namespace transactions {
 
-template <class T, class IteratorT>
+template <class itemT, class IteratorT>
 class Template_IndexedReusableIterator;
 
-template <class T>
+template <class itemT>
 class IndexedTransactionsList: public TransactionsList {
 
 protected:
-	typedef Template_ReusableTransactionIterator<T> NativeIterator;
-	T* _concatenated;
+	itemT* _concatenated;
 
 	typedef struct {
 		SimpleDigest::Type prefix_hash;
 		int32_t support;
-		T* start_transaction;
-		T* end_transaction;
-		T* end_prefix;
+		itemT* start_transaction;
+		itemT* end_transaction;
+		itemT* end_prefix;
 	} descTransaction;
 
 	descTransaction* _transactions_info;
 	int32_t _num_allocated_transactions;
 	int32_t _num_real_transactions;
-	T* _writeIndex;
+	itemT* _writeIndex;
 
 public:
-	static const T MAX_VALUE;
+	static const itemT MAX_VALUE;
 
 	IndexedTransactionsList(Counters* c);
 	IndexedTransactionsList(int32_t transactionsLength,
@@ -54,20 +52,21 @@ public:
 	unique_ptr<Iterator<int32_t>> getIdIterator() override;
 	unique_ptr<TransactionsWriter> getWriter() override;
 	int32_t size() override;
-	unique_ptr<ReusableTransactionIterator> getIterator() override;
     void compress() override;
 
 	static bool compatible(Counters* c);
 	static int32_t getMaxTransId(Counters* c);
 
-	template <class IteratorT>
-	void positionIterator(int32_t transaction,
-			Template_IndexedReusableIterator<T, IteratorT> *iter);
+	void countSubList(TidList::ItemTidList *tidlist,
+	    		int32_t& transactionsCount, int32_t& distinctTransactionsCount,
+	    		int32_t* supportCounts, int32_t* distinctTransactionsCounts,
+	    		int32_t extension, int32_t maxItem) override;
+
+	void copyTo(TidList::ItemTidList* item_tidList,
+	    		TransactionsWriter* writer, TidList* new_tidList,
+	    		int32_t* renaming, int32_t coreItem) override;
 
 private:
-	template <class IteratorT>
-	unique_ptr<Template_ReusableTransactionIterator<IteratorT> > getIteratorWithType();
-
     static void sort(
     		descTransaction* transactions_info,
     		int32_t* start, int32_t* end);
@@ -78,30 +77,30 @@ private:
 
 };
 
-template <class T>
+template <class itemT>
 class Writer : public TransactionsWriter
 {
 private:
     int32_t transId;
-    IndexedTransactionsList<T> *_tlist;
+    IndexedTransactionsList<itemT> *_tlist;
 
 public:
-    Writer(IndexedTransactionsList<T> *tlist);
+    Writer(IndexedTransactionsList<itemT> *tlist);
     int32_t beginTransaction(int32_t support) override;
     void addItem(int32_t item) override;
     void endTransaction(int32_t core_item) override;
 };
 
-template <class T>
+template <class itemT>
 class IdIter : public Iterator<int32_t>
 {
 private:
     int32_t pos;
     int32_t nextPos;
-    IndexedTransactionsList<T> *_tlist;
+    IndexedTransactionsList<itemT> *_tlist;
 
 public:
-    IdIter(IndexedTransactionsList<T> *tlist);
+    IdIter(IndexedTransactionsList<itemT> *tlist);
     int32_t next() override;
     bool hasNext() override;
 

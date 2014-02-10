@@ -6,9 +6,12 @@
 using namespace std;
 
 #include <internals/Counters.hpp>
+#include <internals/transactions/TransactionsList.hpp>
+#include <internals/Dataset.hpp>
 #include <internals/TransactionReader.hpp>
 #include <util/ItemAndSupport.hpp>
 #include <util/ItemsetsFactory.hpp>
+#include <io/FileReader.hpp>
 using namespace util;
 
 namespace internals {
@@ -31,7 +34,7 @@ shp_array_int32 make_p_array_int32(uint32_t size, int32_t init_value)
 
 Counters::Counters(
 		int32_t minimumSupport,
-		Iterator<TransactionReader*>* transactions,
+		TransactionsSubList* item_transactions,
 		int32_t extension,
 		int32_t maxItem) {
 
@@ -40,38 +43,12 @@ Counters::Counters(
 	supportCounts = make_p_array_int32(maxItem + 1, 0);
 	distinctTransactionsCounts = make_p_array_int32(maxItem + 1, 0);
 	reverseRenaming = nullptr;
-	auto opt_supportCounts = supportCounts->array;
-	auto opt_distinctTransactionsCounts = distinctTransactionsCounts->array;
 
 	// item support and transactions counting
+	item_transactions->count(transactionsCount, distinctTransactionsCount,
+			supportCounts->array, distinctTransactionsCounts->array,
+			extension, maxItem);
 
-	int weightsSum = 0;
-
-	while (transactions->hasNext()) {
-		TransactionReader* transaction = transactions->next();
-		int weight = transaction->getTransactionSupport();
-
-		if (weight > 0) {
-			if (transaction->hasNext()) {
-				weightsSum += weight;
-			}
-
-			while (transaction->hasNext()) {
-				int item = transaction->next();
-				if (item <= maxItem) {
-					opt_supportCounts[item] += weight;
-					opt_distinctTransactionsCounts[item]++;
-				}
-			}
-		}
-	}
-
-	transactionsCount = weightsSum;
-	distinctTransactionsCount = transactionsCount;
-
-	// ignored items
-	opt_supportCounts[extension] = 0;
-	opt_distinctTransactionsCounts[extension] = 0;
 	maxCandidate = extension;
 
 	// item filtering and final computations : some are infrequent, some
@@ -116,7 +93,7 @@ Counters::Counters(
 }
 
 Counters::Counters(int32_t minimumSupport,
-		Iterator<TransactionReader*>* transactions) {
+		FileReader* file_reader) {
 	minSupport = minimumSupport;
 
 	unordered_map<int32_t, int32_t> supportsMap;
@@ -125,23 +102,30 @@ Counters::Counters(int32_t minimumSupport,
 
 	// item support and transactions counting
 
-	int32_t transactionsCounter = 0;
-	int32_t item, support;
-	while (transactions->hasNext()) {
-		transaction = transactions->next();
-		transactionsCounter++;
+	transactionsCount = 0;
+	int32_t item = 0, support;
+	int32_t *begin;
+	int32_t *end;
+	int32_t *it;
+	while (file_reader->hasNext()) {
+		transaction = file_reader->next();
+		++transactionsCount;
 
-		while (transaction->hasNext()) {
-			item = transaction->next();
-			biggestItemID = max(biggestItemID, item);
+		transaction->getTransactionBounds(begin, end);
+		for(it = begin; it < end; it++)
+		{
+			item = *it;
 			// the following works because the initial value
 			// will be 0 if item was not yet present.
-			supportsMap[item]++;
+			++(supportsMap[item]);
+
+			// transactions are not sorted yet,
+			// so we really have to do that for all items...
+			biggestItemID = max(biggestItemID, item);
 		}
 	}
 
-	transactionsCount = transactionsCounter;
-	distinctTransactionsCount = transactionsCounter;
+	distinctTransactionsCount = transactionsCount;
 	renaming = make_p_array_int32(biggestItemID + 1, -1);
 
 	// item filtering and final computations : some are infrequent, some

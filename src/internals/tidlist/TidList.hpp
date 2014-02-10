@@ -9,9 +9,15 @@ using namespace std;
 using namespace util;
 
 namespace internals {
+
+class Counters;
+
 namespace tidlist {
 
 class TidList {
+
+protected:
+	TidList();
 
 public:
 	struct ItemTidList
@@ -20,13 +26,14 @@ public:
 	    virtual unique_ptr<Iterator<int32_t> > iterator() = 0;
 	};
 
-	TidList();
 	virtual ~TidList();
-
 	virtual unique_ptr<TidList::ItemTidList>
 						getItemTidList(int32_t item) = 0;
 	virtual void addTransaction(int32_t item, int32_t transaction) = 0;
 	virtual unique_ptr<TidList> clone() = 0;
+
+	static unique_ptr<TidList> newEmptyTidList(
+			Counters *counters, int32_t max_tid);
 };
 }
 }

@@ -12,9 +12,19 @@ using namespace std;
 #include "util/shortcuts.h"
 using namespace util;
 
+namespace io {
+class FileReader;
+}
+
+using io::FileReader;
+
 namespace internals {
 
 class FrequentIterator; // defined below
+
+namespace transactions {
+class TransactionsSubList;
+}
 
 /**
  * This class' constructor performs item counting over a transactions database,
@@ -136,8 +146,11 @@ public:
 	 * @param maxItem
 	 *            biggest index among items to be found in "transactions"
 	 */
-    Counters(int32_t minimumSupport, Iterator<TransactionReader*>* transactions, int32_t extension, int32_t maxItem);
-	/**
+    Counters(int32_t minimumSupport,
+    		transactions::TransactionsSubList* item_transactions,
+    		int32_t extension, int32_t maxItem);
+
+    /**
 	 * Does item counting over an initial dataset : it will only ignore
 	 * infrequent items, and it doesn't know what's biggest item ID. IT ALSO
 	 * IGNORES TRANSACTIONS WEIGHTS ! (assuming it's 1 everywhere) /!\ It will
@@ -150,7 +163,7 @@ public:
 	 * @param minimumSupport
 	 * @param transactions
 	 */
-    Counters(int32_t minimumSupport, Iterator<TransactionReader*>* transactions);
+    Counters(int32_t minimumSupport, FileReader* file_reader);
 
 private:
     Counters(const Counters& other);	// copy constructor

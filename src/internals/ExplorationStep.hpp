@@ -17,8 +17,12 @@ namespace internals {
 // forward declarations
 
 class Dataset;
-class TransactionsIterable;
 class Counters;
+
+namespace transactions {
+class TransactionsSubList;
+}
+using transactions::TransactionsSubList;
 
 struct Progress {
 public:
@@ -78,7 +82,7 @@ public:
 
 private:
 	unique_ptr<Dataset> instanciateDataset(ExplorationStep* parent,
-			TransactionsIterable* support);
+			TransactionsSubList* item_transactions);
 
 public:
 	void addFailedFPTest(int32_t item, int32_t firstParent);
@@ -111,7 +115,7 @@ protected:
 	 */
 	ExplorationStep(ExplorationStep* parent, int32_t extension,
 			unique_ptr<Counters> candidateCounts,
-			TransactionsIterable* support);
+			TransactionsSubList* item_transactions);
 };
 
 }

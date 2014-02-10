@@ -15,12 +15,15 @@ using namespace util;
 
 namespace internals {
 
-class TransactionsIterable;
+namespace transactions {
+class TransactionsSubList;
+}
 class Counters;
 
 /**
  * Stores transactions and does occurrence delivery
  */
+
 class Dataset
 {
 protected:
@@ -34,13 +37,10 @@ protected:
 
 public:
     void compress(int32_t coreItem);
-    unique_ptr<TransactionsIterable> getSupport(
-    						int32_t item);
-    unique_ptr<ReusableTransactionIterator> getTransactionIterator();
+    unique_ptr<TransactionsSubList> getTransactionsSubList(int32_t item);
     unique_ptr<Iterator<int32_t> > getItemTidListIterator(int32_t item);
 
-    Dataset(Counters* counters, Iterator<TransactionReader*>* transactions);
-    /**
+     /**
 	 * @param counters
 	 * @param transactions
 	 *            assumed to be filtered according to counters
@@ -48,7 +48,8 @@ public:
 	 *            - highest item (exclusive) which will have a tidList. set to
 	 *            MAX_VALUE when using predictive pptest.
 	 */
-    Dataset(Counters* counters, Iterator<TransactionReader*>* transactions, int32_t tidListBound, int32_t coreItem);
+    Dataset(Counters* counters, CopyableTransactionsList* item_transactions,
+    		shp_array_int32 renaming, int32_t coreItem);
 
 protected:
 	/**
@@ -58,31 +59,5 @@ protected:
 
     int32_t getStoredTransactionsCount();
 };
-
-class TransactionsIterable
-{
-protected:
-	unique_ptr<TidList::ItemTidList> _tids;
-	Dataset *_dataset;
-
-public:
-    TransactionsIterable(Dataset *dataset,
-    		unique_ptr<TidList::ItemTidList> tidList);
-    unique_ptr<Iterator<TransactionReader*> > iterator();
-};
-
-class TransactionsIterator : public Iterator<TransactionReader*>
-{
-protected:
-	unique_ptr<Iterator<int32_t> > _it;
-	unique_ptr<ReusableTransactionIterator> _transIter;
-
-public:
-    TransactionsIterator(Dataset *dataset,
-    		unique_ptr<Iterator<int32_t> > tids);
-    TransactionReader* next() override;
-    bool hasNext() override;
-};
-
 
 }

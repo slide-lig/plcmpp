@@ -127,6 +127,12 @@ public:
 		return last_chunk_curr++;
 	}
 
+	void end_block(T* &items_begin, T* &items_end) {
+		items_begin = block_start + 1;
+		items_end = last_chunk_curr;
+		end_block();
+	}
+
 	void end_block() {
 		auto len = last_chunk_curr - block_start - 1;
 		*block_start = len;

@@ -10,49 +10,55 @@ using namespace util;
 
 namespace io {
 
-int FileReader::CopyReader::getTransactionSupport() {
-	return 1;
-}
-
-int FileReader::CopyReader::next() {
-	return (*(current_trans_start++));
-}
-
-bool FileReader::CopyReader::hasNext() {
-	return current_trans_start != current_trans_end;
-}
-
 FileReader::CopyReader::CopyReader(
-		Storage* storage, p_array_int32 renaming) {
+		Storage* storage) {
 	_transactions_iterator = storage->getIterator();
-	_renaming = renaming;
-	current_trans_start = nullptr;
-	current_trans_end = nullptr;
 }
 
-bool FileReader::CopyReader::hasMoreTransactions() {
-	return _transactions_iterator.has_more_blocks();
-}
+void FileReader::CopyReader::copyTo(TransactionsWriter* writer,
+		TidList* tidList, int32_t* renaming, int32_t coreItem) {
 
-void FileReader::CopyReader::prepareForNextTransaction() {
+	int32_t *begin;
+	int32_t *end;
+	int32_t *it;
+	int32_t item;
+	int32_t transId;
 	int32_t* it_renaming_src;
 	int32_t* it_renaming_dst;
 
-	_transactions_iterator.next_block(
-			current_trans_start, current_trans_end);
+	while (_transactions_iterator.has_more_blocks()) {
 
-	it_renaming_dst = current_trans_start;
-	for (	it_renaming_src = current_trans_start;
-			it_renaming_src != current_trans_end;
-			it_renaming_src++) {
-		int32_t renamed = (*_renaming)[*it_renaming_src];
-		if (renamed >= 0) {
-			*(it_renaming_dst++) = renamed;
+		// retrieve transaction bounds
+		_transactions_iterator.next_block(
+				begin, end);
+
+		// sort the transaction, and
+		// rename / filter the items
+		it_renaming_dst = begin;
+		for (	it_renaming_src = begin;
+				it_renaming_src != end;
+				it_renaming_src++) {
+			int32_t renamed = renaming[*it_renaming_src];
+			if (renamed >= 0) {
+				*(it_renaming_dst++) = renamed;
+			}
 		}
+		end = it_renaming_dst;
+		if (begin == end) continue;
+		std::sort(begin, end);
+
+		transId = writer->beginTransaction(1);
+
+		for(it = begin; it < end; ++it)
+		{
+			item = *it;
+			writer->addItem(item);
+			tidList->addTransaction(item, transId);
+		}
+
+		writer->endTransaction(coreItem);
 	}
 
-	current_trans_end = it_renaming_dst;
-	std::sort(current_trans_start, current_trans_end);
 }
 
 FileReader::LineReader::LineReader(Storage *storage, string &path) {
@@ -64,8 +70,6 @@ FileReader::LineReader::LineReader(Storage *storage, string &path) {
 		cerr << "Could not open " << path << ". Aborting." << endl;
 		abort();
 	}
-
-	nextChar = _file->get();
 }
 
 FileReader::LineReader::~LineReader()
@@ -78,54 +82,57 @@ int FileReader::LineReader::getTransactionSupport() {
 	return 1;
 }
 
-int FileReader::LineReader::next() {
-	int nextInt = -1;
-	while (nextChar == ' ')
-		nextChar = _file->get();
-
-	while('0' <= nextChar && nextChar <= '9') {
-		if (nextInt < 0) {
-			nextInt = nextChar - '0';
-		} else {
-			nextInt = (10*nextInt) + (nextChar - '0');
+enum READ_STATE {
+	SPACES,
+	INTEGER
+};
+void FileReader::LineReader::getTransactionBounds(int32_t* &begin, int32_t* &end) {
+	string line;
+	getline(*_file, line);
+	enum READ_STATE state = SPACES;
+	uint cur_int = 0;
+	for (char c : line)
+	{
+		if (c == ' ')
+		{
+			if (state == SPACES)
+				continue;
+			else
+			{
+				_storage->push_back(cur_int);
+				cur_int = 0;
+				state = SPACES;
+			}
 		}
-		nextChar = _file->get();
+		else // a digit 0-9
+		{
+			if (state == SPACES)
+				state = INTEGER;
+
+			cur_int = (10*cur_int) + (c - '0');
+		}
 	}
 
-	while (nextChar == ' ')
-		nextChar = _file->get();
+	// do not forget the last one...
+	if (state == INTEGER)
+	{
+		_storage->push_back(cur_int);
+	}
 
-	_storage->push_back(nextInt);
-	return nextInt;
-}
-
-bool FileReader::LineReader::hasNext() {
-	bool end_of_transaction = (nextChar == '\n');
-	if (end_of_transaction)
-		_storage->end_block();
-	return !end_of_transaction;
+	_storage->end_block(begin, end);
 }
 
 bool FileReader::LineReader::hasMoreTransactions() {
-	// skip empty lines
-	while ((nextChar == '\n') &&
-			(_file->good())) {
-		nextChar = _file->get();
-	}
 	return _file->good();
 }
 
 void FileReader::LineReader::prepareForNextTransaction() {
-	// skip empty lines
-	while (nextChar == '\n') {
-		nextChar = _file->get();
-	}
 	_storage->start_block();
 }
 
-void FileReader::close(p_array_int32 renamingMap) {
-	delete _reader;
-	_reader = new FileReader::CopyReader(_storage, renamingMap);
+unique_ptr<FileReader::CopyReader> FileReader::getSavedTransactions() {
+	return unique_ptr<FileReader::CopyReader>(
+			new FileReader::CopyReader(_storage));
 }
 
 bool FileReader::hasNext() {
@@ -135,11 +142,6 @@ bool FileReader::hasNext() {
 internals::TransactionReader* FileReader::next() {
 	_reader->prepareForNextTransaction();
 	return _reader;
-}
-
-void FileReader::remove() {
-	cerr << "Unsupported! Aborting." << endl;
-	abort();
 }
 
 FileReader::FileReader(string& path) {

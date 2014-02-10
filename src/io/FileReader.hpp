@@ -1,5 +1,6 @@
 #pragma once
 
+#include <internals/transactions/TransactionsList.hpp>
 #include <internals/TransactionReader.hpp>
 #include <util/Iterator.hpp>
 #include <util/shortcuts.h>
@@ -9,6 +10,9 @@ using util::Iterator;
 using util::BlocksStorage;
 using util::p_array_int32;
 using internals::TransactionReader;
+using internals::transactions::CopyableTransactionsList;
+using internals::transactions::TransactionsWriter;
+
 
 namespace io {
 
@@ -23,7 +27,7 @@ namespace io {
  * transactions. This second iteration may be done with a rebasing map.
  */
 
-class FileReader : public Iterator<TransactionReader*>
+class FileReader
 {
 	/**
 	 * We avoid small allocations by using megabyte pages. Transactions are stored in pages
@@ -43,32 +47,25 @@ private:
 	};
 
 
-	class CopyReader : public ChainedTransactionReader {
+	class CopyReader : public CopyableTransactionsList {
 
 		private:
 			Storage::iterator _transactions_iterator;
-			p_array_int32 _renaming;
-			int32_t* current_trans_start;
-			int32_t* current_trans_end;
 
 		/**
 		 * read currentPage[currentPageIndex, to[
 		 */
 		public:
-			CopyReader(Storage *storage, p_array_int32 renaming);
+			CopyReader(Storage *storage);
 
-			int getTransactionSupport() override;
-			int next() override;
-			bool hasNext() override;
-			bool hasMoreTransactions() override;
-			void prepareForNextTransaction() override;
+			void copyTo(TransactionsWriter *writer, TidList *tidList,
+			    			int32_t *renaming, int32_t coreItem);
 	};
 
 	class LineReader : public ChainedTransactionReader {
 
 		private:
 			std::ifstream *_file;
-			char nextChar;
 			Storage *_storage;
 
 		/**
@@ -79,8 +76,7 @@ private:
 			~LineReader();
 
 			int getTransactionSupport() override;
-			int next() override;
-			bool hasNext() override;
+			void getTransactionBounds(int32_t* &begin, int32_t* &end) override;
 			bool hasMoreTransactions() override;
 			void prepareForNextTransaction() override;
 	};
@@ -92,11 +88,10 @@ private:
 	    FileReader(string& path);
 	    ~FileReader();
 
-		void close(p_array_int32 renamingMap);
+	    unique_ptr<FileReader::CopyReader> getSavedTransactions();
 
 		bool hasNext();
 		internals::TransactionReader* next();
-		void remove();
 };
 
 }

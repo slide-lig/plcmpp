@@ -8,7 +8,6 @@ using namespace std;
 #include <internals/FirstParentTest.hpp>
 #include <internals/FrequentsIterator.hpp>
 #include <internals/Selector.hpp>
-#include <internals/TransactionsRenamingDecorator.hpp>
 #include <io/FileReader.hpp>
 #include <util/ItemsetsFactory.hpp>
 #include "util/Helpers.h"
@@ -32,12 +31,19 @@ ExplorationStep::ExplorationStep(int32_t minimumSupport,
 	 * constructor.
 	 */
 	FileReader reader(path);
+
+	// reading of the file occurs in the constructor of Counters:
 	counters = unique_ptr<Counters>(new Counters(minimumSupport, &reader));
-	reader.close(counters->getRenaming().get());
+
+	// transactions were saved in memory while reading the file.
+	// we retrieve them now and specify a renaming.
+	auto savedTransactions = reader.getSavedTransactions();
 
 	pattern = counters->getClosure();
 
-	dataset = unique_ptr<Dataset>(new Dataset(counters.get(), &reader));
+	dataset = unique_ptr<Dataset>(
+			new Dataset(counters.get(), savedTransactions.get(),
+					counters->getRenaming(), -1 /* no core item yet */));
 
 	candidates = Helpers::unique_to_shared(counters->getExtensionsIterator());
 
@@ -46,7 +52,7 @@ ExplorationStep::ExplorationStep(int32_t minimumSupport,
 
 ExplorationStep::ExplorationStep(ExplorationStep* parent,
 		int32_t extension, unique_ptr<Counters> candidateCounts,
-		TransactionsIterable* support) {
+		TransactionsSubList* item_transactions) {
 	core_item = extension;
 	counters = move(candidateCounts); // get ownership
 	shp_array_int32 reverseRenaming = parent->counters->getReverseRenaming();
@@ -79,7 +85,7 @@ ExplorationStep::ExplorationStep(ExplorationStep* parent,
 		selector = ExplorationStep::firstParentTestInstance;
 
 		// indeed, instantiateDataset is influenced by longTransactionsMode
-		dataset = instanciateDataset(parent, support);
+		dataset = instanciateDataset(parent, item_transactions);
 
 		// and intanciateDataset may choose to trigger some renaming in
 		// counters
@@ -101,12 +107,11 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 		}
 
 		if (selector == nullptr || selector->select(candidate, this)) {
-			unique_ptr<TransactionsIterable> support = dataset->getSupport(
+			unique_ptr<TransactionsSubList> item_transactions = dataset->getTransactionsSubList(
 					candidate);
 
-			auto it = support->iterator();
 			unique_ptr<Counters> candidateCounts(
-					new Counters(counters->minSupport, it.get(), candidate,
+					new Counters(counters->minSupport, item_transactions.get(), candidate,
 							counters->maxFrequent));
 
 			auto closure = candidateCounts->getClosure().get();
@@ -125,7 +130,7 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 
 			return unique_ptr<ExplorationStep>(
 					new ExplorationStep(this, candidate, move(candidateCounts), /* transfer ownership */
-					support.get()));
+					item_transactions.get()));
 		}
 	}
 
@@ -133,16 +138,13 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 }
 
 unique_ptr<Dataset> ExplorationStep::instanciateDataset(ExplorationStep* parent,
-		TransactionsIterable* support) {
+		TransactionsSubList* item_transactions) {
 	shp_array_int32 renaming = counters->compressRenaming(
 				parent->counters->getReverseRenaming());
-	auto it = support->iterator();
-
-	auto filtered = unique_ptr<TransactionsRenamingDecorator>(
-					new TransactionsRenamingDecorator(it.get(), renaming));
 
 	Dataset* dataset = new Dataset(
-			counters.get(), filtered.get(), INT_MAX, core_item);
+			counters.get(), item_transactions, renaming, core_item);
+
 	dataset->compress(core_item);
 	return unique_ptr<Dataset>(dataset);
 }
