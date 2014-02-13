@@ -139,13 +139,15 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 
 unique_ptr<Dataset> ExplorationStep::instanciateDataset(ExplorationStep* parent,
 		TransactionsSubList* item_transactions) {
+
 	shp_array_int32 renaming = counters->compressRenaming(
 				parent->counters->getReverseRenaming());
 
 	Dataset* dataset = new Dataset(
-			counters.get(), item_transactions, renaming, core_item);
+			counters.get(), item_transactions, renaming,
+			counters->getMaxCandidate());
 
-	dataset->compress(core_item);
+	dataset->compress(counters->getMaxCandidate());
 	return unique_ptr<Dataset>(dataset);
 }
 

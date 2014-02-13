@@ -55,9 +55,9 @@ void TransactionsSubList::count(int32_t& transactionsCount,
 }
 
 void TransactionsSubList::copyTo(TransactionsWriter* writer, TidList* tidList,
-		int32_t* renaming, int32_t coreItem) {
+		int32_t* renaming, int32_t max_candidate) {
 	_transactions->copyTo(_tids.get(), writer, tidList,
-				renaming, coreItem);
+				renaming, max_candidate);
 }
 
 }

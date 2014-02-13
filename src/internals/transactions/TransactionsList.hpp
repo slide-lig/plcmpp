@@ -21,7 +21,7 @@ class CopyableTransactionsList
 public:
 	virtual ~CopyableTransactionsList() {}
     virtual void copyTo(TransactionsWriter *writer, TidList *tidList,
-    			int32_t *renaming, int32_t coreItem) = 0;
+    			int32_t *renaming, int32_t max_candidate) = 0;
 };
 
 /**
@@ -46,7 +46,7 @@ public:
     		int32_t extension, int32_t maxItem) = 0;
     virtual void copyTo(TidList::ItemTidList* item_tidList,
     		TransactionsWriter* writer, TidList* new_tidList,
-    		int32_t* renaming, int32_t coreItem) = 0;
+    		int32_t* renaming, int32_t max_candidate) = 0;
 
     static unique_ptr<TransactionsList> newEmptyTransactionList(
 			Counters *counters, int32_t &max_tid);
@@ -65,7 +65,7 @@ public:
     			int32_t *supportCounts, int32_t *distinctTransactionsCounts,
     			int32_t extension, int32_t maxItem);
     void copyTo(TransactionsWriter *writer, TidList *tidList,
-    			int32_t *renaming, int32_t coreItem);
+    			int32_t *renaming, int32_t max_candidate);
 
 };
 

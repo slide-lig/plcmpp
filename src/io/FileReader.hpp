@@ -59,7 +59,7 @@ private:
 			CopyReader(Storage *storage);
 
 			void copyTo(TransactionsWriter *writer, TidList *tidList,
-			    			int32_t *renaming, int32_t coreItem);
+			    			int32_t *renaming, int32_t max_candidate);
 	};
 
 	class LineReader : public ChainedTransactionReader {

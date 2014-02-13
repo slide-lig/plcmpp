@@ -77,14 +77,14 @@ void IndexedTransactionsList<itemT>::beginTransaction(int32_t transId,
 }
 
 template <class itemT>
-void IndexedTransactionsList<itemT>::endTransaction(int32_t transId, int32_t core_item) {
+void IndexedTransactionsList<itemT>::endTransaction(int32_t transId, int32_t max_candidate) {
 	descTransaction* desc_trans = _transactions_info + transId;
 	desc_trans->end_transaction = _writeIndex;
 	desc_trans->end_prefix =
 			std::upper_bound(
 					desc_trans->start_transaction,
 					desc_trans->end_transaction,
-					core_item
+					max_candidate
 					);
 	//cout << "itemT " << transId << endl;
 	desc_trans->prefix_hash = SimpleDigest::digest(
@@ -198,7 +198,7 @@ template<class itemT>
 void IndexedTransactionsList<itemT>::copyTo(
 		TidList::ItemTidList* item_tidList, TransactionsWriter* writer,
 		TidList* new_tidList,
-		int32_t* renaming, int32_t coreItem) {
+		int32_t* renaming, int32_t max_candidate) {
 
 	itemT *begin;
 	itemT *end;
@@ -241,7 +241,7 @@ void IndexedTransactionsList<itemT>::copyTo(
 				}
 			}
 
-			writer->endTransaction(coreItem);
+			writer->endTransaction(max_candidate);
 		}
 	}
 }
@@ -266,8 +266,8 @@ void Writer<itemT>::addItem(int32_t item) {
 }
 
 template <class itemT>
-void Writer<itemT>::endTransaction(int32_t core_item) {
-	_tlist->endTransaction(transId++, core_item);
+void Writer<itemT>::endTransaction(int32_t max_candidate) {
+	_tlist->endTransaction(transId++, max_candidate);
 }
 
 template <class itemT>

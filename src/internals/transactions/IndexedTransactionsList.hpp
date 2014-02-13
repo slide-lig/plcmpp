@@ -45,7 +45,7 @@ public:
 	int32_t getTransSupport(int32_t trans);
 	void setTransSupport(int32_t trans, int32_t s);
 	void beginTransaction(int32_t transId, int32_t support);
-	void endTransaction(int32_t transId, int32_t core_item);
+	void endTransaction(int32_t transId, int32_t max_candidate);
 	void writeItem(int32_t item);
 	int32_t findNext(int32_t nextPos);
 
@@ -64,7 +64,7 @@ public:
 
 	void copyTo(TidList::ItemTidList* item_tidList,
 	    		TransactionsWriter* writer, TidList* new_tidList,
-	    		int32_t* renaming, int32_t coreItem) override;
+	    		int32_t* renaming, int32_t max_candidate) override;
 
 private:
     static void sort(
@@ -88,7 +88,7 @@ public:
     Writer(IndexedTransactionsList<itemT> *tlist);
     int32_t beginTransaction(int32_t support) override;
     void addItem(int32_t item) override;
-    void endTransaction(int32_t core_item) override;
+    void endTransaction(int32_t max_candidate) override;
 };
 
 template <class itemT>

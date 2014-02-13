@@ -36,7 +36,7 @@ protected:
 	unique_ptr<TidList> _tidList;
 
 public:
-    void compress(int32_t coreItem);
+    void compress(int32_t max_candidate);
     unique_ptr<TransactionsSubList> getTransactionsSubList(int32_t item);
     unique_ptr<Iterator<int32_t> > getItemTidListIterator(int32_t item);
 
@@ -49,7 +49,7 @@ public:
 	 *            MAX_VALUE when using predictive pptest.
 	 */
     Dataset(Counters* counters, CopyableTransactionsList* item_transactions,
-    		shp_array_int32 renaming, int32_t coreItem);
+    		shp_array_int32 renaming, int32_t max_candidate);
 
 protected:
 	/**

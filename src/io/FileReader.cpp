@@ -16,7 +16,7 @@ FileReader::CopyReader::CopyReader(
 }
 
 void FileReader::CopyReader::copyTo(TransactionsWriter* writer,
-		TidList* tidList, int32_t* renaming, int32_t coreItem) {
+		TidList* tidList, int32_t* renaming, int32_t max_candidate) {
 
 	int32_t *begin;
 	int32_t *end;
@@ -56,7 +56,7 @@ void FileReader::CopyReader::copyTo(TransactionsWriter* writer,
 			tidList->addTransaction(item, transId);
 		}
 
-		writer->endTransaction(coreItem);
+		writer->endTransaction(max_candidate);
 	}
 
 }
