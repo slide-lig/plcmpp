@@ -238,7 +238,13 @@ void IndexedTransactionsList<itemT>::copyTo(
 				if (item != -1)
 				{
 					TransactionsWriter->addItem(item);
-					new_tidList->addTransaction(item, transId);
+
+					/* The next passes of the algorithm will only uses
+					 * the tidlists of items in the prefix */
+					if (item < max_candidate)
+					{
+						new_tidList->addTransaction(item, transId);
+					}
 				}
 			}
 
