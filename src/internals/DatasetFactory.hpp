@@ -136,7 +136,7 @@ public:
 		}
 	};
 
-	template <class parentItemT, class parentTidT, class parentDatasetT>
+	template <class parentDatasetT>
 	static unique_ptr<DatasetT> initChildDataset(
 				parentDatasetT* parentDataset,
                 int32_t extension,
@@ -145,8 +145,11 @@ public:
 				int32_t max_candidate)
 	{
 		typedef ChildDatasetInitializer<parentDatasetT> initializerT;
+		typedef typename parentDatasetT::item_type parentItemT;
+		typedef typename parentDatasetT::tid_type parentTidT;
 
-		return initDataset<parentItemT, parentTidT, initializerT, parentDatasetT*, int32_t, int32_t*, int32_t>(
+		return initDataset<parentItemT, parentTidT,
+				initializerT, parentDatasetT*, int32_t, int32_t*, int32_t>(
 				  		counters,
 				  		parentDataset,
 				  		extension,

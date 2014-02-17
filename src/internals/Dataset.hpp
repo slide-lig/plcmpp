@@ -85,6 +85,8 @@ protected:
 
 public:
 	typedef SpecializedDataset<TransactionsListT, TidListT> self_type;
+	typedef typename TransactionsListT::base_type item_type;
+	typedef typename TidListT::base_type tid_type;
 
 	SpecializedDataset(unique_ptr<TransactionsListT> trnlist,
 			unique_ptr<TidListT> tidlist) {
@@ -136,10 +138,7 @@ public:
 			shp_array_int32 renaming, Counters *counters, int32_t max_candidate)
 					override {
 
-		return DatasetFactory::initChildDataset<
-				typename TransactionsListT::base_type,
-				typename TidListT::base_type,
-				self_type>(
+		return DatasetFactory::initChildDataset<self_type>(
 						this, extension, renaming->begin(), counters, max_candidate);
 	}
 };
