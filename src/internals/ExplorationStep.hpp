@@ -18,11 +18,7 @@ namespace internals {
 
 class Dataset;
 class Counters;
-
-namespace transactions {
 class TransactionsSubList;
-}
-using transactions::TransactionsSubList;
 
 struct Progress {
 public:
@@ -82,7 +78,7 @@ public:
 
 private:
 	unique_ptr<Dataset> instanciateDataset(ExplorationStep* parent,
-			TransactionsSubList* item_transactions);
+							int32_t extension);
 
 public:
 	void addFailedFPTest(int32_t item, int32_t firstParent);
@@ -114,8 +110,7 @@ protected:
 	 *            previously-computed extension's support
 	 */
 	ExplorationStep(ExplorationStep* parent, int32_t extension,
-			unique_ptr<Counters> candidateCounts,
-			TransactionsSubList* item_transactions);
+			unique_ptr<Counters> candidateCounts);
 };
 
 }

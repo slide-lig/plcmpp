@@ -6,7 +6,6 @@
 #include <atomic>
 using namespace std;
 
-#include "internals/TransactionReader.hpp"
 #include "internals/FrequentsIterator.hpp"
 #include "util/Iterator.hpp"
 #include "util/shortcuts.h"
@@ -19,12 +18,6 @@ class FileReader;
 using io::FileReader;
 
 namespace internals {
-
-class FrequentIterator; // defined below
-
-namespace transactions {
-class TransactionsSubList;
-}
 
 /**
  * This class' constructor performs item counting over a transactions database,
@@ -146,8 +139,9 @@ public:
 	 * @param maxItem
 	 *            biggest index among items to be found in "transactions"
 	 */
+    template <class TransactionsSubList>
     Counters(int32_t minimumSupport,
-    		transactions::TransactionsSubList* item_transactions,
+    		TransactionsSubList* item_transactions,
     		int32_t extension, int32_t maxItem);
 
     /**
@@ -215,6 +209,71 @@ public:
     unique_ptr<FrequentsIterator> getExtensionsIterator();
 };
 
+#define make_p_vec_int32(size, init_value)		make_shared<vec_int32>(size, init_value)
+#define make_p_array_int32_no_init(size) 		make_shared<array_int32>(size)
+#define make_p_array_int32(size, init_value) 	make_shared<array_int32>(size, init_value)
+
+template <class TransactionsSubList>
+Counters::Counters(
+		int32_t minimumSupport,
+		TransactionsSubList* item_transactions,
+		int32_t extension,
+		int32_t maxItem) {
+
+	renaming = nullptr;
+	minSupport = minimumSupport;
+	supportCounts = make_p_array_int32(maxItem + 1, 0);
+	distinctTransactionsCounts = make_p_array_int32(maxItem + 1, 0);
+	reverseRenaming = nullptr;
+
+	// item support and transactions counting
+	item_transactions->count(transactionsCount, distinctTransactionsCount,
+			supportCounts->array, distinctTransactionsCounts->array,
+			extension, maxItem);
+
+	maxCandidate = extension;
+
+	// item filtering and final computations : some are infrequent, some
+	// belong to closure
+
+	p_vec_int32 new_closure = new vec_int32();
+	uint32_t remainingDistinctTransLengths = 0;
+	uint32_t remainingFrequents = 0;
+
+	auto it_supportCounts_end = supportCounts->end();
+	auto it_supportCounts = supportCounts->begin();
+	auto it_distinctTransactionsCounts =
+			distinctTransactionsCounts->begin();
+	uint32_t i;
+	uint32_t biggestItemID = 0;
+
+	for (i = 0;
+		 it_supportCounts != it_supportCounts_end;
+		 ++it_supportCounts, ++i, ++it_distinctTransactionsCounts)
+	{
+		int32_t& ref_supportCount = *it_supportCounts;
+		if (ref_supportCount < minimumSupport) {
+			ref_supportCount = 0;
+			(*it_distinctTransactionsCounts) = 0;
+		} else if (ref_supportCount == transactionsCount) {
+			new_closure->push_back(i);
+			ref_supportCount = 0;
+			(*it_distinctTransactionsCounts) = 0;
+		} else {
+			biggestItemID = i;
+			++remainingFrequents;
+			remainingDistinctTransLengths += (*it_distinctTransactionsCounts);
+		}
+	}
+
+	closure.reset(new_closure);
+	distinctTransactionLengthSum = remainingDistinctTransLengths;
+	nbFrequents = remainingFrequents;
+	maxFrequent = biggestItemID;
+
+	compactedArrays = false;
+}
+
 /**
  * Thread-safe iterator over frequent items (ie. those having a support
  * count in [minSup, 100%[)
@@ -242,3 +301,4 @@ public:
 };
 
 }
+

@@ -2,7 +2,6 @@
 #pragma once
 
 #include <internals/transactions/TransactionsList.hpp>
-#include <internals/transactions/TransactionsWriter.hpp>
 #include <util/Iterator.hpp>
 #include <util/shortcuts.h>
 #include <util/SimpleDigest.h>
@@ -12,8 +11,8 @@ using namespace util;
 namespace internals {
 namespace transactions {
 
-template <class itemT, class IteratorT>
-class Template_IndexedReusableIterator;
+template <class itemT>
+class TransactionsWriter;
 
 template <class itemT>
 class IndexedTransactionsList: public TransactionsList {
@@ -35,6 +34,7 @@ protected:
 	itemT* _writeIndex;
 
 public:
+	typedef itemT base_type;
 	static const itemT MAX_VALUE;
 
 	IndexedTransactionsList(Counters* c);
@@ -46,11 +46,11 @@ public:
 	void setTransSupport(int32_t trans, int32_t s);
 	void beginTransaction(int32_t transId, int32_t support);
 	void endTransaction(int32_t transId, int32_t max_candidate);
-	void writeItem(int32_t item);
+	void writeItem(itemT item);
 	int32_t findNext(int32_t nextPos);
 
 	unique_ptr<Iterator<int32_t>> getIdIterator() override;
-	unique_ptr<TransactionsWriter> getWriter() override;
+	unique_ptr<TransactionsWriter<itemT> > getWriter();
 	int32_t size() override;
     void compress() override;
 
@@ -62,9 +62,10 @@ public:
 	    		int32_t* supportCounts, int32_t* distinctTransactionsCounts,
 	    		int32_t extension, int32_t maxItem) override;
 
+	template <class childItemT>
 	void copyTo(TidList::ItemTidList* item_tidList,
-	    		TransactionsWriter* writer, TidList* new_tidList,
-	    		int32_t* renaming, int32_t max_candidate) override;
+	    		TransactionsWriter<childItemT>* writer, TidList* new_tidList,
+	    		int32_t* renaming, int32_t max_candidate);
 
 private:
     static void sort(
@@ -78,17 +79,17 @@ private:
 };
 
 template <class itemT>
-class Writer : public TransactionsWriter
+class TransactionsWriter
 {
 private:
     int32_t transId;
     IndexedTransactionsList<itemT> *_tlist;
 
 public:
-    Writer(IndexedTransactionsList<itemT> *tlist);
-    int32_t beginTransaction(int32_t support) override;
-    void addItem(int32_t item) override;
-    void endTransaction(int32_t max_candidate) override;
+    TransactionsWriter(IndexedTransactionsList<itemT> *tlist);
+    int32_t beginTransaction(int32_t support);
+    void addItem(itemT item);
+    void endTransaction(int32_t max_candidate);
 };
 
 template <class itemT>

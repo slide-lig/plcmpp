@@ -1,13 +1,16 @@
-
 #pragma once
 
+#include <climits>
 #include <memory>
 using namespace std;
 
-#include "internals/transactions/TransactionsList.hpp"
+#include <internals/tidlist/Template_ConsecutiveItemsConcatenatedTidList.hpp>
+#include "internals/transactions/IndexedTransactionsList.hpp"
 #include "internals/tidlist/TidList.hpp"
 #include "util/Iterator.hpp"
 #include "util/shortcuts.h"
+#include "PLCM.hpp"
+#include "internals/DatasetFactory.hpp"
 
 using namespace internals::transactions;
 using namespace internals::tidlist;
@@ -15,49 +18,130 @@ using namespace util;
 
 namespace internals {
 
-namespace transactions {
-class TransactionsSubList;
-}
 class Counters;
 
 /**
  * Stores transactions and does occurrence delivery
  */
 
-class Dataset
-{
+class TransactionsSubList;
+
+template<class TransactionsListT, class TidListT>
+class SpecializedDataset;
+
+class Dataset {
+public:
+	virtual void compress(int32_t max_candidate) = 0;
+	virtual unique_ptr<TransactionsSubList> getTransactionsSubList(
+			int32_t item) = 0;
+	virtual unique_ptr<Iterator<int32_t> > getItemTidListIterator(
+			int32_t item) = 0;
+	virtual void countSubList(TidList::ItemTidList *item_tidlist,
+			int32_t &transactionsCount, int32_t &distinctTransactionsCount,
+			int32_t *supportCounts, int32_t *distinctTransactionsCounts,
+			int32_t extension, int32_t maxItem) = 0;
+	virtual unique_ptr<Dataset> instanciateChildDataset(int32_t extension,
+			shp_array_int32 renaming, Counters *counters,
+			int32_t max_candidate) = 0;
+
+	template<class TransactionsListT, class TidListT>
+	static unique_ptr<Dataset> instanciateDataset(
+			unique_ptr<TransactionsListT> trnlist,
+			unique_ptr<TidListT> tidlist) {
+		return unique_ptr<Dataset>(
+				new SpecializedDataset<TransactionsListT, TidListT>(
+						// pass ownership of these 2 unique_ptr
+						std::move(trnlist),
+						std::move(tidlist)));
+	}
+
+};
+
+typedef DatasetFactoryImpl<Dataset> DatasetFactory;
+
+class TransactionsSubList {
 protected:
-	unique_ptr<TransactionsList> _transactions;
+	unique_ptr<TidList::ItemTidList> _tids;
+	Dataset *_dataset;
+
+public:
+	TransactionsSubList(Dataset *dataset,
+			unique_ptr<TidList::ItemTidList> tidList);
+	void count(int32_t &transactionsCount, int32_t &distinctTransactionsCount,
+			int32_t *supportCounts, int32_t *distinctTransactionsCounts,
+			int32_t extension, int32_t maxItem);
+};
+
+template<class TransactionsListT, class TidListT>
+class SpecializedDataset: public Dataset {
+protected:
+	unique_ptr<TransactionsListT> _transactions;
 
 	/**
 	 * frequent item => array of occurrences indexes in "concatenated"
 	 * Transactions are added in the same order in all occurrences-arrays.
 	 */
-	unique_ptr<TidList> _tidList;
+	unique_ptr<TidListT> _tidList;
 
 public:
-    void compress(int32_t max_candidate);
-    unique_ptr<TransactionsSubList> getTransactionsSubList(int32_t item);
-    unique_ptr<Iterator<int32_t> > getItemTidListIterator(int32_t item);
+	typedef SpecializedDataset<TransactionsListT, TidListT> self_type;
 
-     /**
-	 * @param counters
-	 * @param transactions
-	 *            assumed to be filtered according to counters
-	 * @param tidListBound
-	 *            - highest item (exclusive) which will have a tidList. set to
-	 *            MAX_VALUE when using predictive pptest.
-	 */
-    Dataset(Counters* counters, CopyableTransactionsList* item_transactions,
-    		shp_array_int32 renaming, int32_t max_candidate);
+	SpecializedDataset(unique_ptr<TransactionsListT> trnlist,
+			unique_ptr<TidListT> tidlist) {
+		// transfer ownership
+		_transactions = std::move(trnlist);
+		_tidList = std::move(tidlist);
+	}
 
-protected:
-	/**
-	 * @return how many transactions (ignoring their weight) are stored behind
-	 *         this dataset
-	 */
+	void compress(int32_t max_candidate) override {
+		//cout << max_candidate << endl;
+		PLCM::getCurrentThread()->counters[PLCM::PLCMCounters::TransactionsCompressions]++;
+		_transactions->compress();
+	}
 
-    int32_t getStoredTransactionsCount();
+	unique_ptr<TransactionsSubList> getTransactionsSubList(int32_t item)
+			override {
+		return unique_ptr<TransactionsSubList>(
+				new TransactionsSubList(this, _tidList->getItemTidList(item)));
+	}
+
+	unique_ptr<Iterator<int32_t> > getItemTidListIterator(int32_t item)
+			override {
+		return _tidList->getItemTidList(item)->iterator();
+	}
+
+	unique_ptr<TidList::ItemTidList> getItemTidList(int32_t item) {
+		return _tidList->getItemTidList(item);
+	}
+
+	void countSubList(TidList::ItemTidList *tidlist, int32_t& transactionsCount,
+			int32_t& distinctTransactionsCount, int32_t* supportCounts,
+			int32_t* distinctTransactionsCounts, int32_t extension,
+			int32_t maxItem) override {
+
+		_transactions->countSubList(tidlist, transactionsCount,
+				distinctTransactionsCount, supportCounts,
+				distinctTransactionsCounts, extension, maxItem);
+	}
+
+	template<class childItemT>
+	void copyTo(TidList::ItemTidList* item_tidList,
+			TransactionsWriter<childItemT>* writer, TidList* new_tidList,
+			int32_t* renaming, int32_t max_candidate) {
+		_transactions->copyTo(item_tidList, writer, new_tidList, renaming,
+				max_candidate);
+	}
+
+	unique_ptr<Dataset> instanciateChildDataset(int32_t extension,
+			shp_array_int32 renaming, Counters *counters, int32_t max_candidate)
+					override {
+
+		return DatasetFactory::initChildDataset<
+				typename TransactionsListT::base_type,
+				typename TidListT::base_type,
+				self_type>(
+						this, extension, renaming->begin(), counters, max_candidate);
+	}
 };
 
 }

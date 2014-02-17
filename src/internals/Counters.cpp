@@ -8,7 +8,6 @@ using namespace std;
 #include <internals/Counters.hpp>
 #include <internals/transactions/TransactionsList.hpp>
 #include <internals/Dataset.hpp>
-#include <internals/TransactionReader.hpp>
 #include <util/ItemAndSupport.hpp>
 #include <util/ItemsetsFactory.hpp>
 #include <io/FileReader.hpp>
@@ -16,89 +15,13 @@ using namespace util;
 
 namespace internals {
 
-shp_vec_int32 make_p_vec_int32(uint32_t size, int32_t init_value)
-{
-	return make_shared<vec_int32>(size, init_value);
-}
-
-
-shp_array_int32 make_p_array_int32(uint32_t size)
-{
-	return make_shared<array_int32>(size);
-}
-
-shp_array_int32 make_p_array_int32(uint32_t size, int32_t init_value)
-{
-	return make_shared<array_int32>(size, init_value);
-}
-
-Counters::Counters(
-		int32_t minimumSupport,
-		TransactionsSubList* item_transactions,
-		int32_t extension,
-		int32_t maxItem) {
-
-	renaming = nullptr;
-	minSupport = minimumSupport;
-	supportCounts = make_p_array_int32(maxItem + 1, 0);
-	distinctTransactionsCounts = make_p_array_int32(maxItem + 1, 0);
-	reverseRenaming = nullptr;
-
-	// item support and transactions counting
-	item_transactions->count(transactionsCount, distinctTransactionsCount,
-			supportCounts->array, distinctTransactionsCounts->array,
-			extension, maxItem);
-
-	maxCandidate = extension;
-
-	// item filtering and final computations : some are infrequent, some
-	// belong to closure
-
-	p_vec_int32 new_closure = new vec_int32();
-	uint32_t remainingDistinctTransLengths = 0;
-	uint32_t remainingFrequents = 0;
-
-	auto it_supportCounts_end = supportCounts->end();
-	auto it_supportCounts = supportCounts->begin();
-	auto it_distinctTransactionsCounts =
-			distinctTransactionsCounts->begin();
-	uint32_t i;
-	uint32_t biggestItemID = 0;
-
-	for (i = 0;
-		 it_supportCounts != it_supportCounts_end;
-		 ++it_supportCounts, ++i, ++it_distinctTransactionsCounts)
-	{
-		int32_t& ref_supportCount = *it_supportCounts;
-		if (ref_supportCount < minimumSupport) {
-			ref_supportCount = 0;
-			(*it_distinctTransactionsCounts) = 0;
-		} else if (ref_supportCount == transactionsCount) {
-			new_closure->push_back(i);
-			ref_supportCount = 0;
-			(*it_distinctTransactionsCounts) = 0;
-		} else {
-			biggestItemID = i;
-			++remainingFrequents;
-			remainingDistinctTransLengths += (*it_distinctTransactionsCounts);
-		}
-	}
-
-	closure.reset(new_closure);
-	distinctTransactionLengthSum = remainingDistinctTransLengths;
-	nbFrequents = remainingFrequents;
-	maxFrequent = biggestItemID;
-
-	compactedArrays = false;
-}
-
 Counters::Counters(int32_t minimumSupport,
 		FileReader* file_reader) {
 	minSupport = minimumSupport;
 
 	unordered_map<int32_t, int32_t> supportsMap;
 	int biggestItemID = 0;
-	TransactionReader *transaction;
+	FileReader::TransactionReader *transaction;
 
 	// item support and transactions counting
 
@@ -150,9 +73,9 @@ Counters::Counters(int32_t minimumSupport,
 	maxFrequent = nbFrequents - 1;
 	maxCandidate = maxFrequent + 1;
 
-	supportCounts = make_p_array_int32(nbFrequents);
-	distinctTransactionsCounts = make_p_array_int32(nbFrequents);
-	reverseRenaming = make_p_array_int32(nbFrequents);
+	supportCounts = make_p_array_int32_no_init(nbFrequents);
+	distinctTransactionsCounts = make_p_array_int32_no_init(nbFrequents);
+	reverseRenaming = make_p_array_int32_no_init(nbFrequents);
 	int remainingSupportsSum = 0;
 	auto opt_renaming = renaming->array;
 	auto opt_reverseRenaming = reverseRenaming->array;
@@ -236,8 +159,8 @@ shp_array_int32 Counters::compressRenaming(
 
 	auto new_renaming_size =
 			max(olderReverseRenaming->size(), supportCounts->size());
-	auto new_renaming = make_p_array_int32(new_renaming_size);
-	reverseRenaming = make_p_array_int32(nbFrequents);
+	auto new_renaming = make_p_array_int32_no_init(new_renaming_size);
+	reverseRenaming = make_p_array_int32_no_init(nbFrequents);
 	auto opt_supportCounts = supportCounts->array;
 	auto opt_new_renaming = new_renaming->array;
 	auto opt_reverseRenaming = reverseRenaming->array;

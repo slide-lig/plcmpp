@@ -41,9 +41,12 @@ ExplorationStep::ExplorationStep(int32_t minimumSupport,
 
 	pattern = counters->getClosure();
 
-	dataset = unique_ptr<Dataset>(
-			new Dataset(counters.get(), savedTransactions.get(),
-					counters->getRenaming(), -1 /* no core item yet */));
+	dataset = DatasetFactory::initFirstDataset(
+			savedTransactions.get(),
+			counters->getRenaming(),
+			counters.get(),
+			-1 /* no core item yet */
+			);
 
 	candidates = Helpers::unique_to_shared(counters->getExtensionsIterator());
 
@@ -51,8 +54,7 @@ ExplorationStep::ExplorationStep(int32_t minimumSupport,
 }
 
 ExplorationStep::ExplorationStep(ExplorationStep* parent,
-		int32_t extension, unique_ptr<Counters> candidateCounts,
-		TransactionsSubList* item_transactions) {
+		int32_t extension, unique_ptr<Counters> candidateCounts) {
 	core_item = extension;
 	counters = move(candidateCounts); // get ownership
 	shp_array_int32 reverseRenaming = parent->counters->getReverseRenaming();
@@ -85,7 +87,7 @@ ExplorationStep::ExplorationStep(ExplorationStep* parent,
 		selector = ExplorationStep::firstParentTestInstance;
 
 		// indeed, instantiateDataset is influenced by longTransactionsMode
-		dataset = instanciateDataset(parent, item_transactions);
+		dataset = instanciateDataset(parent, extension);
 
 		// and intanciateDataset may choose to trigger some renaming in
 		// counters
@@ -129,8 +131,8 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 			candidateCounts->reuseRenaming(counters->getReverseRenaming());
 
 			return unique_ptr<ExplorationStep>(
-					new ExplorationStep(this, candidate, move(candidateCounts), /* transfer ownership */
-					item_transactions.get()));
+					new ExplorationStep(
+							this, candidate, move(candidateCounts) /* transfer ownership */));
 		}
 	}
 
@@ -138,17 +140,20 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 }
 
 unique_ptr<Dataset> ExplorationStep::instanciateDataset(ExplorationStep* parent,
-		TransactionsSubList* item_transactions) {
+				int32_t extension) {
 
 	shp_array_int32 renaming = counters->compressRenaming(
 				parent->counters->getReverseRenaming());
 
-	Dataset* dataset = new Dataset(
-			counters.get(), item_transactions, renaming,
-			counters->getMaxCandidate());
+	unique_ptr<Dataset> dataset = parent->dataset->instanciateChildDataset(
+			extension,
+			renaming,
+			counters.get(),
+			counters->getMaxCandidate()
+			);
 
 	dataset->compress(counters->getMaxCandidate());
-	return unique_ptr<Dataset>(dataset);
+	return dataset;
 }
 
 void ExplorationStep::addFailedFPTest(int32_t item,

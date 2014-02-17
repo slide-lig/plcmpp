@@ -31,9 +31,6 @@ public:
 						getItemTidList(int32_t item) = 0;
 	virtual void addTransaction(int32_t item, int32_t transaction) = 0;
 	virtual unique_ptr<TidList> clone() = 0;
-
-	static unique_ptr<TidList> newEmptyTidList(
-			Counters *counters, int32_t max_tid);
 };
 }
 }

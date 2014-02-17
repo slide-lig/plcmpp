@@ -21,6 +21,7 @@ private:
     T* _array_fast;
 
 public:
+	typedef T base_type;
     Template_ConsecutiveItemsConcatenatedTidList(
     		Counters* c, int32_t highestItem);
     Template_ConsecutiveItemsConcatenatedTidList(

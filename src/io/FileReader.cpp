@@ -15,52 +15,6 @@ FileReader::CopyReader::CopyReader(
 	_transactions_iterator = storage->getIterator();
 }
 
-void FileReader::CopyReader::copyTo(TransactionsWriter* writer,
-		TidList* tidList, int32_t* renaming, int32_t max_candidate) {
-
-	int32_t *begin;
-	int32_t *end;
-	int32_t *it;
-	int32_t item;
-	int32_t transId;
-	int32_t* it_renaming_src;
-	int32_t* it_renaming_dst;
-
-	while (_transactions_iterator.has_more_blocks()) {
-
-		// retrieve transaction bounds
-		_transactions_iterator.next_block(
-				begin, end);
-
-		// sort the transaction, and
-		// rename / filter the items
-		it_renaming_dst = begin;
-		for (	it_renaming_src = begin;
-				it_renaming_src != end;
-				it_renaming_src++) {
-			int32_t renamed = renaming[*it_renaming_src];
-			if (renamed >= 0) {
-				*(it_renaming_dst++) = renamed;
-			}
-		}
-		end = it_renaming_dst;
-		if (begin == end) continue;
-		std::sort(begin, end);
-
-		transId = writer->beginTransaction(1);
-
-		for(it = begin; it < end; ++it)
-		{
-			item = *it;
-			writer->addItem(item);
-			tidList->addTransaction(item, transId);
-		}
-
-		writer->endTransaction(max_candidate);
-	}
-
-}
-
 FileReader::LineReader::LineReader(Storage *storage, string &path) {
 	_storage = storage;
 	_file = new std::ifstream(path);
@@ -139,7 +93,7 @@ bool FileReader::hasNext() {
 	return _reader->hasMoreTransactions();
 }
 
-internals::TransactionReader* FileReader::next() {
+FileReader::TransactionReader* FileReader::next() {
 	_reader->prepareForNextTransaction();
 	return _reader;
 }

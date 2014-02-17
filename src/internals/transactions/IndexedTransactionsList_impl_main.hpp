@@ -61,8 +61,8 @@ unique_ptr<Iterator<int32_t> > IndexedTransactionsList<itemT>::getIdIterator() {
 }
 
 template <class itemT>
-unique_ptr<TransactionsWriter> IndexedTransactionsList<itemT>::getWriter() {
-	return unique_ptr<TransactionsWriter>(new Writer<itemT>(this));
+unique_ptr<TransactionsWriter<itemT> > IndexedTransactionsList<itemT>::getWriter() {
+	return unique_ptr<TransactionsWriter<itemT> >(new TransactionsWriter<itemT>(this));
 }
 
 template <class itemT>
@@ -127,14 +127,14 @@ int32_t IndexedTransactionsList<itemT>::getMaxTransId(
 
 template <class itemT>
 void IndexedTransactionsList<itemT>::writeItem(
-		int32_t item) {
+		itemT item) {
 	if (item > MAX_VALUE) {
 		cerr << item <<
 				" too big for this kind of transaction list! Aborting."
 				<< endl;
 		abort();
 	}
-	*_writeIndex = (itemT) item;
+	*_writeIndex = item;
 	_writeIndex++;
 }
 
@@ -195,8 +195,9 @@ void IndexedTransactionsList<itemT>::countSubList(
 }
 
 template<class itemT>
+template<class childItemT>
 void IndexedTransactionsList<itemT>::copyTo(
-		TidList::ItemTidList* item_tidList, TransactionsWriter* writer,
+		TidList::ItemTidList* item_tidList, TransactionsWriter<childItemT>* TransactionsWriter,
 		TidList* new_tidList,
 		int32_t* renaming, int32_t max_candidate) {
 
@@ -221,7 +222,7 @@ void IndexedTransactionsList<itemT>::copyTo(
 
 			if (begin == end) continue;
 
-			transId = writer->beginTransaction(weight);
+			transId = TransactionsWriter->beginTransaction(weight);
 
 			for(it = begin; it < end; ++it)
 			{
@@ -236,12 +237,12 @@ void IndexedTransactionsList<itemT>::copyTo(
 
 				if (item != -1)
 				{
-					writer->addItem(item);
+					TransactionsWriter->addItem(item);
 					new_tidList->addTransaction(item, transId);
 				}
 			}
 
-			writer->endTransaction(max_candidate);
+			TransactionsWriter->endTransaction(max_candidate);
 		}
 	}
 }
@@ -249,24 +250,24 @@ void IndexedTransactionsList<itemT>::copyTo(
 
 
 template <class itemT>
-Writer<itemT>::Writer(IndexedTransactionsList<itemT> *tlist) {
+TransactionsWriter<itemT>::TransactionsWriter(IndexedTransactionsList<itemT> *tlist) {
 	transId = 0;
 	_tlist = tlist;
 }
 
 template <class itemT>
-int32_t Writer<itemT>::beginTransaction(int32_t support) {
+int32_t TransactionsWriter<itemT>::beginTransaction(int32_t support) {
 	_tlist->beginTransaction(transId, support);
 	return transId;
 }
 
 template <class itemT>
-void Writer<itemT>::addItem(int32_t item) {
+void TransactionsWriter<itemT>::addItem(itemT item) {
 	_tlist->writeItem(item);
 }
 
 template <class itemT>
-void Writer<itemT>::endTransaction(int32_t max_candidate) {
+void TransactionsWriter<itemT>::endTransaction(int32_t max_candidate) {
 	_tlist->endTransaction(transId++, max_candidate);
 }
 
