@@ -169,7 +169,7 @@ shp_array_int32 Counters::compressRenaming(
 
 	// we will always have newItemID <= item
 	int newItemID = 0;
-	int greatestBelowMaxCandidate = INT32_MIN;
+	int greatestBelowMaxCandidate = -2;
 
 	int32_t item = 0;
 	auto end_supportCounts = supportCounts->end();

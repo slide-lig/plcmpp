@@ -19,7 +19,6 @@ using namespace std;
 
 using util::shp_array_int32;
 using internals::transactions::IndexedTransactionsList;
-using internals::transactions::TransactionsWriter;
 using internals::tidlist::Template_ConsecutiveItemsConcatenatedTidList;
 
 namespace internals {
@@ -110,9 +109,7 @@ public:
 		auto tidlist = new Template_ConsecutiveItemsConcatenatedTidList<tidT>(
 				counters, INT_MAX);
 
-		auto writer = trnlist->getWriter();
-
-		datasetInitializerT::initialize(writer.get(), tidlist, args...);
+		datasetInitializerT::initialize(trnlist, tidlist, args...);
 
 		return DatasetT::instanciateDataset(unique_ptr<IndexedTransactionsList<itemT> >(trnlist),
 				unique_ptr<Template_ConsecutiveItemsConcatenatedTidList<tidT> >(tidlist));

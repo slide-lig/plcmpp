@@ -1,5 +1,7 @@
 
 #include <iostream>
+#include <unordered_set>
+#include <tuple>
 using namespace std;
 
 #include <internals/transactions/IndexedTransactionsList.hpp>
@@ -9,122 +11,102 @@ using namespace std;
 namespace internals {
 namespace transactions {
 
-template<class T>
-inline void IndexedTransactionsList<T>::compress() {
-	array_int32 sortList(size());
-	unique_ptr<Iterator<int32_t> > idIter = getIdIterator();
-	auto end = sortList.end();
-	auto begin = sortList.begin();
-	for (auto it = begin; it != end; it++) {
-		*it = idIter->next();
-	}
-	sort(_transactions_info, begin, end);
-}
+#define TID(prefix_info) 			(std::get<0>(prefix_info))
+#define TRANS_START(prefix_info) 	(std::get<1>(prefix_info)->start_transaction)
+#define TRANS_END(prefix_info) 		(std::get<1>(prefix_info)->end_transaction)
+#define TRANS_SUPPORT(prefix_info) 	(std::get<1>(prefix_info)->support)
+#define PREFIX_END(prefix_info) 	(std::get<2>(prefix_info))
 
-/**
- * This is NOT a standard quicksort. Transactions with same prefix as the
- * pivot are left out the rest of the sort because they have been merged in
- * the pivot. Consequence: in the recursion, there is some space between
- * left sublist and right sublist (besides the pivot itself).
- *
- * @param array
- * @param start
- * @param end
- * @param it1
- * @param it2
- * @param prefixEnd
- */
-template<class T>
-inline void IndexedTransactionsList<T>::sort(
-		descTransaction* transactions_info,
-		int32_t* start, int32_t* end) {
-	int32_t t1;
-	int32_t t2;
-	if (start >= end - 1) {
-		// size 0 or 1
-		return;
-	} else if (end - start == 2) {
-		t1 = *start;
-		t2 = *(start + 1);
-		merge(transactions_info, t1, t2);
-	} else {
-		// pick pivot at the middle and put it at the end
-		int32_t* pivotPos = start + ((end - start) / 2);
-		int32_t pivotVal = *pivotPos;
-		*pivotPos = *(end - 1);
-		*(end - 1) = pivotVal;
-		int32_t* insertInf = start;
-		int32_t* insertSup = end - 2;
-		for (int32_t* i = start; i <= insertSup;) {
-			t1 = pivotVal;
-			t2 = *i;
-			int32_t comp = merge(transactions_info, t1, t2);
-			if (comp < 0) {
-				int32_t valI = *i;
-				*insertInf = valI;
-				insertInf++;
-				i++;
-			} else if (comp > 0) {
-				int32_t valI = *i;
-				*i = *insertSup;
-				*insertSup = valI;
-				insertSup--;
-			} else {
-				i++;
-			}
-		}
-		*(end - 1) = *(insertSup + 1);
-		// Arrays.fill(array, insertInf, insertSup + 2, -1);
-		*(insertSup + 1) = pivotVal;
-		sort(transactions_info, start, insertInf);
-		sort(transactions_info, insertSup + 2, end);
-	}
-}
-
-template<class T>
-inline int32_t IndexedTransactionsList<T>::merge(
-		descTransaction* transactions_info,
-		int32_t t1, int32_t t2) {
-
-	descTransaction& info_t1 = transactions_info[t1];
-	descTransaction& info_t2 = transactions_info[t2];
-
-	// compare prefix hash (caution, hashes are unsigned integers,
-	// a difference is not adequate)
-	if (info_t1.prefix_hash < info_t2.prefix_hash)
-		return 1;
-	if (info_t2.prefix_hash < info_t1.prefix_hash)
-		return -1;
-
-	// compare prefix length
-	int cmp = (info_t2.end_prefix - info_t2.start_transaction) -
-			(info_t1.end_prefix - info_t1.start_transaction);
-
-	if (cmp != 0)
-		return cmp;
-
-	// compare prefix
-	cmp = std::memcmp(info_t1.start_transaction, info_t2.start_transaction,
-				(info_t1.end_prefix - info_t1.start_transaction)*sizeof(T));
-
-	if (cmp != 0)
+template <class prefix_info_t>
+struct prefix_hasher {
+	size_t operator() (const prefix_info_t& prefix_info) const
 	{
-		ADD_DIGEST_FALSE_POSITIVE(info_t1.start_transaction, info_t1.end_prefix,
-				info_t2.start_transaction, info_t2.end_prefix);
-		return cmp;
+		return SimpleDigest::digest(
+				TRANS_START(prefix_info),
+				PREFIX_END(prefix_info));
 	}
+};
 
-	// same prefix, we should merge
-	info_t1.end_transaction = std::set_intersection(
-			info_t1.end_prefix, info_t1.end_transaction,
-			info_t2.end_prefix, info_t2.end_transaction,
-			info_t1.end_prefix);
+template <class prefix_info_t>
+struct prefixes_test_equal {
+	bool operator() (
+			const prefix_info_t& prefix1_info,
+			const prefix_info_t& prefix2_info) const
+	{
+		// compare prefix length
+		if (	(PREFIX_END(prefix2_info) - TRANS_START(prefix2_info)) !=
+				(PREFIX_END(prefix1_info) - TRANS_START(prefix1_info)))
+			return false;
 
-	info_t1.support += info_t2.support;
-	info_t2.support = 0;
+		// compare prefix
+		int cmp = std::memcmp(TRANS_START(prefix1_info), TRANS_START(prefix2_info),
+				(PREFIX_END(prefix1_info) - TRANS_START(prefix1_info)) *
+					sizeof(*TRANS_START(prefix1_info)));
 
-	return 0;
-}
+		if (cmp != 0)
+		{
+			ADD_DIGEST_FALSE_POSITIVE(TRANS_START(prefix1_info), PREFIX_END(prefix1_info),
+					TRANS_START(prefix2_info), PREFIX_END(prefix2_info));
+			return false;
+		}
+
+		return true; // same prefix
+	}
+};
+
+typedef int32_t tid_t;
+
+template <class childItemT>
+struct PrefixDeduplication {
+
+	typedef IndexedTransactionsList<childItemT> tlist_t;
+
+	typedef tuple<
+				tid_t,
+				typename tlist_t::descTransaction*,
+				typename tlist_t::prefix_end_t
+			> prefix_info_t;
+
+	typedef unordered_set<
+				prefix_info_t,
+				prefix_hasher<prefix_info_t>,
+				prefixes_test_equal<prefix_info_t>
+			> prefix_set_t;
+
+	static bool insertOrMerge(
+			prefix_set_t& known_prefixes_info,
+			tid_t transId,
+			int32_t weight,
+			typename tlist_t::descTransaction* trans_info,
+			childItemT *end_prefix,
+			IndexedTransactionsList<childItemT>* writer)
+	{
+		auto it = known_prefixes_info.emplace(
+				transId, trans_info, end_prefix);
+
+		if (!it.second)
+		{
+			// the insertion was actually not done because
+			// the element *it.first has the same prefix
+			const prefix_info_t &found_match = *(it.first);
+
+			// we should merge these 2 transactions
+			TRANS_END(found_match) = std::set_intersection(
+									PREFIX_END(found_match), TRANS_END(found_match),
+									end_prefix, trans_info->end_transaction,
+									PREFIX_END(found_match));
+
+			// set the support of *it to the sum
+			// of the supports of these 2 transactions
+			writer->incTransSupport(TID(found_match), weight);
+
+			// discard the one we just wrote
+			writer->discardLastTransaction();
+		}
+
+		return it.second;
+	}
+};
 
 }
 }

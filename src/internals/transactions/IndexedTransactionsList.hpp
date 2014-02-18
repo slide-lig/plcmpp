@@ -4,7 +4,6 @@
 #include <internals/transactions/TransactionsList.hpp>
 #include <util/Iterator.hpp>
 #include <util/shortcuts.h>
-#include <util/SimpleDigest.h>
 
 using namespace util;
 
@@ -12,24 +11,24 @@ namespace internals {
 namespace transactions {
 
 template <class itemT>
-class TransactionsWriter;
-
-template <class itemT>
 class IndexedTransactionsList: public TransactionsList {
+
+public:
+	typedef itemT* trans_start_t;
+	typedef itemT* prefix_end_t;
+	typedef itemT* trans_end_t;
+
+	typedef struct {
+		int32_t support;
+		trans_start_t start_transaction;
+		trans_end_t end_transaction;
+	} descTransaction;
 
 protected:
 	itemT* _concatenated;
 
-	typedef struct {
-		SimpleDigest::Type prefix_hash;
-		int32_t support;
-		itemT* start_transaction;
-		itemT* end_transaction;
-		itemT* end_prefix;
-	} descTransaction;
-
 	descTransaction* _transactions_info;
-	int32_t _num_allocated_transactions;
+	int32_t _num_transactions;
 	int32_t _num_real_transactions;
 	itemT* _writeIndex;
 
@@ -43,15 +42,13 @@ public:
 	~IndexedTransactionsList();
 
 	int32_t getTransSupport(int32_t trans);
-	void setTransSupport(int32_t trans, int32_t s);
+	void incTransSupport(int32_t trans, int32_t s);
 	int32_t beginTransaction(int32_t support, itemT*& write_index);
-	void endTransaction(int32_t max_candidate, itemT* end_index);
-	int32_t findNext(int32_t nextPos);
-
-	unique_ptr<Iterator<int32_t>> getIdIterator() override;
-	unique_ptr<TransactionsWriter<itemT> > getWriter();
+	descTransaction* endTransaction(itemT* end_index);
+	descTransaction* endTransaction(itemT* end_index,
+			int32_t max_candidate, itemT* &end_prefix);
+	void discardLastTransaction();
 	int32_t size() override;
-    void compress() override;
 
 	static bool compatible(Counters* c);
 	static int32_t getMaxTransId(Counters* c);
@@ -63,7 +60,7 @@ public:
 
 	template <class childItemT>
 	void copyTo(TidList::ItemTidList* item_tidList,
-	    		TransactionsWriter<childItemT>* writer, TidList* new_tidList,
+			IndexedTransactionsList<childItemT>* writer, TidList* new_tidList,
 	    		int32_t* renaming, int32_t max_candidate);
 
 private:
@@ -77,39 +74,10 @@ private:
 
 };
 
-template <class itemT>
-class TransactionsWriter
-{
-private:
-    IndexedTransactionsList<itemT> *_tlist;
-
-public:
-    typedef itemT base_type;
-    TransactionsWriter(IndexedTransactionsList<itemT> *tlist);
-    int32_t beginTransaction(int32_t support, itemT*& write_index);
-    void endTransaction(int32_t max_candidate, itemT* end_index);
-};
-
-template <class itemT>
-class IdIter : public Iterator<int32_t>
-{
-private:
-    int32_t pos;
-    int32_t nextPos;
-    IndexedTransactionsList<itemT> *_tlist;
-
-public:
-    IdIter(IndexedTransactionsList<itemT> *tlist);
-    int32_t next() override;
-    bool hasNext() override;
-
-private:
-    void findNext();
-};
-
 }
 }
 
 /* Template classes, we need their definition */
-#include <internals/transactions/IndexedTransactionsList_impl_main.hpp>
 #include <internals/transactions/IndexedTransactionsList_impl_compress.hpp>
+#include <internals/transactions/IndexedTransactionsList_impl_main.hpp>
+

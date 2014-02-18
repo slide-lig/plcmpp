@@ -145,15 +145,12 @@ unique_ptr<Dataset> ExplorationStep::instanciateDataset(ExplorationStep* parent,
 	shp_array_int32 renaming = counters->compressRenaming(
 				parent->counters->getReverseRenaming());
 
-	unique_ptr<Dataset> dataset = parent->dataset->instanciateChildDataset(
+	return parent->dataset->instanciateChildDataset(
 			extension,
 			renaming,
 			counters.get(),
 			counters->getMaxCandidate()
 			);
-
-	dataset->compress(counters->getMaxCandidate());
-	return dataset;
 }
 
 void ExplorationStep::addFailedFPTest(int32_t item,

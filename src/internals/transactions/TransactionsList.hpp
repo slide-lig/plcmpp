@@ -27,9 +27,7 @@ protected:
 
 public:
     virtual ~TransactionsList();
-    virtual unique_ptr<Iterator<int32_t>> getIdIterator() = 0;
     virtual int32_t size() = 0;
-    virtual void compress() = 0;
     virtual void countSubList(TidList::ItemTidList *tidlist,
     		int32_t& transactionsCount, int32_t& distinctTransactionsCount,
     		int32_t* supportCounts, int32_t* distinctTransactionsCounts,

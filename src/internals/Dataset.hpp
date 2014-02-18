@@ -31,7 +31,6 @@ class SpecializedDataset;
 
 class Dataset {
 public:
-	virtual void compress(int32_t max_candidate) = 0;
 	virtual unique_ptr<TransactionsSubList> getTransactionsSubList(
 			int32_t item) = 0;
 	virtual unique_ptr<Iterator<int32_t> > getItemTidListIterator(
@@ -95,12 +94,6 @@ public:
 		_tidList = std::move(tidlist);
 	}
 
-	void compress(int32_t max_candidate) override {
-		//cout << max_candidate << endl;
-		PLCM::getCurrentThread()->counters[PLCM::PLCMCounters::TransactionsCompressions]++;
-		_transactions->compress();
-	}
-
 	unique_ptr<TransactionsSubList> getTransactionsSubList(int32_t item)
 			override {
 		return unique_ptr<TransactionsSubList>(
@@ -128,7 +121,7 @@ public:
 
 	template<class childItemT>
 	void copyTo(TidList::ItemTidList* item_tidList,
-			TransactionsWriter<childItemT>* writer, TidList* new_tidList,
+			IndexedTransactionsList<childItemT>* writer, TidList* new_tidList,
 			int32_t* renaming, int32_t max_candidate) {
 		_transactions->copyTo(item_tidList, writer, new_tidList, renaming,
 				max_candidate);

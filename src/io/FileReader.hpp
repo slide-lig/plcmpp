@@ -138,7 +138,7 @@ void FileReader::CopyReader::copyTo(TransactionsWriter* writer,
 		// sort the transaction
 		std::sort(start_index, write_index);
 
-		writer->endTransaction(max_candidate, write_index);
+		writer->endTransaction(write_index);
 	}
 }
 
