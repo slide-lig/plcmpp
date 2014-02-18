@@ -44,9 +44,8 @@ public:
 
 	int32_t getTransSupport(int32_t trans);
 	void setTransSupport(int32_t trans, int32_t s);
-	void beginTransaction(int32_t transId, int32_t support);
-	void endTransaction(int32_t transId, int32_t max_candidate);
-	void writeItem(itemT item);
+	int32_t beginTransaction(int32_t support, itemT*& write_index);
+	void endTransaction(int32_t max_candidate, itemT* end_index);
 	int32_t findNext(int32_t nextPos);
 
 	unique_ptr<Iterator<int32_t>> getIdIterator() override;
@@ -82,14 +81,13 @@ template <class itemT>
 class TransactionsWriter
 {
 private:
-    int32_t transId;
     IndexedTransactionsList<itemT> *_tlist;
 
 public:
+    typedef itemT base_type;
     TransactionsWriter(IndexedTransactionsList<itemT> *tlist);
-    int32_t beginTransaction(int32_t support);
-    void addItem(itemT item);
-    void endTransaction(int32_t max_candidate);
+    int32_t beginTransaction(int32_t support, itemT*& write_index);
+    void endTransaction(int32_t max_candidate, itemT* end_index);
 };
 
 template <class itemT>

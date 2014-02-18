@@ -104,6 +104,7 @@ void FileReader::CopyReader::copyTo(TransactionsWriter* writer,
 	int32_t transId;
 	int32_t* it_renaming_src;
 	int32_t* it_renaming_dst;
+	typename TransactionsWriter::base_type *write_index;
 
 	while (_transactions_iterator.has_more_blocks()) {
 
@@ -126,16 +127,16 @@ void FileReader::CopyReader::copyTo(TransactionsWriter* writer,
 		if (begin == end) continue;
 		std::sort(begin, end);
 
-		transId = writer->beginTransaction(1);
+		transId = writer->beginTransaction(1, write_index);
 
 		for(it = begin; it < end; ++it)
 		{
 			item = *it;
-			writer->addItem(item);
+			*(write_index++) = item;
 			tidList->addTransaction(item, transId);
 		}
 
-		writer->endTransaction(max_candidate);
+		writer->endTransaction(max_candidate, write_index);
 	}
 }
 
