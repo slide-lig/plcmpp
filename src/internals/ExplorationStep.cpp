@@ -75,7 +75,8 @@ ExplorationStep::ExplorationStep(ExplorationStep* parent,
 			*(counters->getClosure()), extension, *(parent->pattern), *(reverseRenaming),
 			*(pattern));
 
-	if (counters->nbFrequents == 0 || counters->distinctTransactionsCount == 0) {
+	if (counters->getMaxCandidate() <= 0 || counters->nbFrequents == 0 ||
+			counters->distinctTransactionsCount == 0) {
 		candidates = nullptr;
 		failedFPTests = nullptr;
 		selector = nullptr;
