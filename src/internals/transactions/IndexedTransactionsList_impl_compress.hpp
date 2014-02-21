@@ -14,7 +14,6 @@ namespace transactions {
 #define TID(prefix_info) 			(std::get<0>(prefix_info))
 #define TRANS_START(prefix_info) 	(std::get<1>(prefix_info)->start_transaction)
 #define TRANS_END(prefix_info) 		(std::get<1>(prefix_info)->end_transaction)
-#define TRANS_SUPPORT(prefix_info) 	(std::get<1>(prefix_info)->support)
 #define PREFIX_END(prefix_info) 	(std::get<2>(prefix_info))
 
 template <class prefix_info_t>
@@ -63,7 +62,7 @@ struct PrefixDeduplication {
 
 	typedef tuple<
 				tid_t,
-				typename tlist_t::descTransaction*,
+				typename tlist_t::transaction_boundaries_t*,
 				typename tlist_t::prefix_end_t
 			> prefix_info_t;
 
@@ -77,12 +76,12 @@ struct PrefixDeduplication {
 			prefix_set_t& known_prefixes_info,
 			tid_t transId,
 			int32_t weight,
-			typename tlist_t::descTransaction* trans_info,
+			typename tlist_t::transaction_boundaries_t* trans_boundaries,
 			childItemT *end_prefix,
 			IndexedTransactionsList<childItemT>* writer)
 	{
 		auto it = known_prefixes_info.emplace(
-				transId, trans_info, end_prefix);
+				transId, trans_boundaries, end_prefix);
 
 		if (!it.second)
 		{
@@ -93,7 +92,7 @@ struct PrefixDeduplication {
 			// we should merge these 2 transactions
 			TRANS_END(found_match) = std::set_intersection(
 									PREFIX_END(found_match), TRANS_END(found_match),
-									end_prefix, trans_info->end_transaction,
+									end_prefix, trans_boundaries->end_transaction,
 									PREFIX_END(found_match));
 
 			// set the support of *it to the sum

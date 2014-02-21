@@ -105,14 +105,21 @@ public:
 	static unique_ptr<DatasetT> initDatasetWithItemTandTidT(
 						Counters *counters, ArgsT... args) {
 
-		auto trnlist = new IndexedTransactionsList<itemT>(counters);
-		auto tidlist = new Template_ConsecutiveItemsConcatenatedTidList<tidT>(
-				counters, INT_MAX);
+		typedef IndexedTransactionsList<itemT> trnlist_t;
+		typedef Template_ConsecutiveItemsConcatenatedTidList<tidT> tidlist_t;
 
-		datasetInitializerT::initialize(trnlist, tidlist, args...);
+		unique_ptr<trnlist_t> trnlist =
+				unique_ptr<trnlist_t>(new trnlist_t(counters));
+		unique_ptr<tidlist_t> tidlist =
+				unique_ptr<tidlist_t>(new tidlist_t(counters, INT_MAX));
 
-		return DatasetT::instanciateDataset(unique_ptr<IndexedTransactionsList<itemT> >(trnlist),
-				unique_ptr<Template_ConsecutiveItemsConcatenatedTidList<tidT> >(tidlist));
+		datasetInitializerT::initialize(
+				trnlist.get(), tidlist.get(), args...);
+
+		return DatasetT::instanciateDataset(
+				/* transfer ownership */
+				std::move(trnlist),
+				std::move(tidlist));
 	}
 
 	template <class parentDatasetT>

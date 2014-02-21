@@ -31,6 +31,7 @@ class SpecializedDataset;
 
 class Dataset {
 public:
+	virtual ~Dataset();
 	virtual unique_ptr<TransactionsSubList> getTransactionsSubList(
 			int32_t item) = 0;
 	virtual unique_ptr<Iterator<int32_t> > getItemTidListIterator(

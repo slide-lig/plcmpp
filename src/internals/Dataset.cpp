@@ -25,4 +25,7 @@ void TransactionsSubList::count(int32_t& transactionsCount,
 			supportCounts, distinctTransactionsCounts, extension, maxItem);
 }
 
+Dataset::~Dataset() {
+}
+
 }

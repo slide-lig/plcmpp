@@ -19,17 +19,18 @@ public:
 	typedef itemT* trans_end_t;
 
 	typedef struct {
-		int32_t support;
 		trans_start_t start_transaction;
 		trans_end_t end_transaction;
-	} descTransaction;
+	} transaction_boundaries_t;
 
 protected:
 	itemT* _concatenated;
+	itemT* _end_concatenated;
 
-	descTransaction* _transactions_info;
+	transaction_boundaries_t* _transactions_boundaries;
+	int32_t* _transactions_support;
 	int32_t _num_transactions;
-	int32_t _num_real_transactions;
+	int32_t _num_transactions_allocated;
 	itemT* _writeIndex;
 
 public:
@@ -44,10 +45,11 @@ public:
 	int32_t getTransSupport(int32_t trans);
 	void incTransSupport(int32_t trans, int32_t s);
 	int32_t beginTransaction(int32_t support, itemT*& write_index);
-	descTransaction* endTransaction(itemT* end_index);
-	descTransaction* endTransaction(itemT* end_index,
+	transaction_boundaries_t* endTransaction(itemT* end_index);
+	transaction_boundaries_t* endTransaction(itemT* end_index,
 			int32_t max_candidate, itemT* &end_prefix);
 	void discardLastTransaction();
+	void repack();
 	int32_t size() override;
 
 	static bool compatible(Counters* c);
@@ -62,15 +64,6 @@ public:
 	void copyTo(TidList::ItemTidList* item_tidList,
 			IndexedTransactionsList<childItemT>* writer, TidList* new_tidList,
 	    		int32_t* renaming, int32_t max_candidate);
-
-private:
-    static void sort(
-    		descTransaction* transactions_info,
-    		int32_t* start, int32_t* end);
-    static int32_t merge(
-    		descTransaction* transactions_info,
-    		int32_t t1,
-    		int32_t t2);
 
 };
 

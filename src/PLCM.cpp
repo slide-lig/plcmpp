@@ -11,7 +11,7 @@ using namespace std;
 #include <io/NullCollector.hpp>
 #include <io/PatternSortCollector.hpp>
 #include <io/StdOutCollector.hpp>
-#include <util/MemoryPeakWatcherThread.hpp>
+#include <util/MemoryUsage.hpp>
 #include <util/ProgressWatcherThread.hpp>
 #include <util/Helpers.h>
 #include <util/SimpleDigest.h>
@@ -123,7 +123,7 @@ int PLCM::main(int argc, char** argv) {
 			"Benchmark mode: patterns are not outputted at "
 			"all (in which case OUTPUT_PATH is ignored)", cmd);
 	TCLAP::SwitchArg memory_usage("m","mem-usage",
-			"Give peak memory usage after mining "
+			"Periodically display memory usage during execution "
 			"(instanciates a periodic watcher thread)", cmd);
 	TCLAP::SwitchArg sort_items("s", "sort-items",
 			"Sort items in outputted patterns, in ascending order", cmd);
@@ -170,11 +170,11 @@ int PLCM::main(int argc, char** argv) {
 }
 
 void PLCM::standalone(unique_ptr<PLCM::Options> options) {
-	unique_ptr<MemoryPeakWatcherThread> memoryWatch = nullptr;
+	unique_ptr<MemoryUsage::WatcherThread> memoryWatch = nullptr;
 
 	if (options->memory_usage) {
-		memoryWatch = unique_ptr<MemoryPeakWatcherThread>(
-				new MemoryPeakWatcherThread());
+		memoryWatch = unique_ptr<MemoryUsage::WatcherThread>(
+				new MemoryUsage::WatcherThread());
 		memoryWatch->start();
 	}
 
@@ -209,8 +209,12 @@ void PLCM::standalone(unique_ptr<PLCM::Options> options) {
 
 	if (memoryWatch != nullptr) {
 		memoryWatch->stop();
-		additionalcounters["maxUsedMemory"] = memoryWatch->getMaxUsedMemory();
 	}
+
+	/* We always give this because its cheap: the kernel records
+	 * the peak memory usage accross the life of processes,
+	 * so we just have to request it here, at the end of the execution. */
+	additionalcounters["maxUsedMemory"] = MemoryUsage::getPeakMemoryUsage();
 
 	miner.display(cerr, additionalcounters);
 }
