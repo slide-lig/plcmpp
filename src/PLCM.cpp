@@ -220,8 +220,10 @@ void PLCM::standalone(unique_ptr<PLCM::Options> options) {
 }
 
 PLCMThread* PLCM::getCurrentThread() {
-	thread_local static PLCMThread *result =
-			(*threads_fast)[this_thread::get_id()].get();
+	static __thread PLCMThread *result = nullptr;
+
+	if (result == nullptr)
+		result = (*threads_fast)[this_thread::get_id()].get();
 	return result;
 }
 

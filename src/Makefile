@@ -9,9 +9,9 @@ TCMALLOC=NUMA_AWARE
 GCC=g++ -Wall -std=gnu++11 -pthread -march=native
 CXX=$(GCC)
 RM=rm -f
-CPPFLAGS=-I. -fmessage-length=0
+CPPFLAGS=-I. -fmessage-length=0 -D_GLIBCXX_USE_NANOSLEEP
 LDFLAGS=
-LDLIBS=
+LDLIBS=-lrt
 POST_PROCESSING=
 
 ifeq ($(DEBUG),1)

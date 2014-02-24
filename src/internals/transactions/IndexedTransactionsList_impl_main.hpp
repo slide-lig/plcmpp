@@ -238,7 +238,7 @@ void IndexedTransactionsList<itemT>::countSubList(
 			for(it = begin; it < end; ++it)
 			{
 				item = *it;
-				if (item <= maxItem) {
+				if ((int32_t)item <= maxItem) {
 					supportCounts[item] += weight;
 					++(distinctTransactionsCounts[item]);
 				}

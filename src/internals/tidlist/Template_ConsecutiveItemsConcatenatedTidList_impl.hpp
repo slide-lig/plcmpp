@@ -43,7 +43,7 @@ unique_ptr<TidList> Template_ConsecutiveItemsConcatenatedTidList<T>::clone() {
 template <class T>
 void Template_ConsecutiveItemsConcatenatedTidList<T>::write(
 		int32_t position, int32_t transaction) {
-	if (transaction > MAX_VALUE) {
+	if (transaction > (int32_t)MAX_VALUE) {
 		cerr << transaction <<
 				" too big for this kind of tid-list! Aborting."
 				<< endl;
