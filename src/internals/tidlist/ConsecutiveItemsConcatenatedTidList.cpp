@@ -66,5 +66,16 @@ void ConsecutiveItemsConcatenatedTidList::addTransaction(
 	_indexAndFreqs_fast[itemIndex + 1]++;
 }
 
+void ConsecutiveItemsConcatenatedTidList::resetTidLists()
+{
+	auto start = _indexAndFreqs_fast +1;
+	auto end = start + _indexAndFreqs_size;
+
+	for (auto it = start; it != end; it += 2)
+	{
+		*it = 0;
+	}
+}
+
 }
 }

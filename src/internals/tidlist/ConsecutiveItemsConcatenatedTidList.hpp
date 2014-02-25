@@ -31,6 +31,7 @@ public:
 
     ~ConsecutiveItemsConcatenatedTidList();
 
+    void resetTidLists() override;
     void addTransaction(int32_t item, int32_t transaction) override;
 
 protected:

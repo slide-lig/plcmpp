@@ -331,5 +331,75 @@ void IndexedTransactionsList<itemT>::copyTo(
 	}
 }
 
+template<class itemT>
+template <class otherItemT>
+IndexedTransactionsList<itemT>::IndexedTransactionsList(
+		const IndexedTransactionsList<otherItemT>* other,
+		TidList* updatable_tidlist) {
+
+	auto len = other->_end_concatenated - other->_concatenated;
+	_concatenated = MALLOC(itemT, len);
+	_end_concatenated = _concatenated + len;
+	_transactions_boundaries = MALLOC(transaction_boundaries_t, other->_num_transactions);
+	_transactions_support = MALLOC(int32_t, other->_num_transactions);
+	_num_transactions_allocated = other->_num_transactions;
+	_num_transactions = 0;
+	_writeIndex = _concatenated;
+
+	otherItemT *begin, *end;
+	itemT *end_prefix, *it_child, *write_index, *start_transaction;
+	int32_t transId, weight;
+	transaction_boundaries_t* transaction_info;
+	typename PrefixDeduplication<itemT>::prefix_set_t known_prefixes_info;
+	updatable_tidlist->resetTidLists();
+
+	for (auto tid = 0; tid < other->_num_transactions; ++tid)
+	{
+		transaction_info = &other->_transactions_boundaries[tid];
+
+		begin = transaction_info->start_transaction;
+		end = transaction_info->end_transaction;
+
+		if (begin == end) continue;
+
+		weight = other->_transactions_support[tid];
+
+		transId = this->beginTransaction(weight, write_index);
+		start_transaction = write_index;
+
+		write_index = std::copy(begin, end, write_index);
+
+		auto trans_desc = this->endTransaction(write_index, INT32_MAX, end_prefix);
+
+		if (PrefixDeduplication<itemT>::insertOrMerge(
+				known_prefixes_info,
+				transId,
+				weight,
+				trans_desc,
+				end_prefix,
+				this))
+		{	// insertion OK: prefix not met yet
+
+			/* The next passes of the algorithm will only use
+			 * the tidlists of items in the prefix */
+			for(	it_child = start_transaction;
+					it_child != end_prefix;
+					it_child++)
+			{
+				updatable_tidlist->addTransaction(*it_child, transId);
+			}
+		}
+	}
+
+	cout << "Found " << (other->_num_transactions - _num_transactions) << "/" <<
+			other->_num_transactions <<
+			" duplicated transactions." << endl;
+
+	if (Config::AVOID_OVER_ALLOC)
+	{
+		this->repack();
+	}
+}
+
 }
 }

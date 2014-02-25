@@ -43,6 +43,7 @@ public:
 	virtual unique_ptr<Dataset> instanciateChildDataset(int32_t extension,
 			shp_array_int32 renaming, Counters *counters,
 			int32_t max_candidate) = 0;
+	virtual void compress() = 0;
 
 	template<class TransactionsListT, class TidListT>
 	static unique_ptr<Dataset> instanciateDataset(
@@ -134,6 +135,11 @@ public:
 
 		return DatasetFactory::initChildDataset<self_type>(
 						this, extension, renaming->begin(), counters, max_candidate);
+	}
+
+	void compress() override {
+		TransactionsListT *trn_list = new TransactionsListT(_transactions.get(), _tidList.get());
+		_transactions.reset(trn_list);
 	}
 };
 

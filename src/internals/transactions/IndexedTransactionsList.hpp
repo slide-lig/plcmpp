@@ -40,6 +40,10 @@ public:
 	IndexedTransactionsList(Counters* c);
 	IndexedTransactionsList(int32_t transactionsLength,
 			int32_t nbTransactions);
+	template <class otherItemT>
+	IndexedTransactionsList(
+			const IndexedTransactionsList<otherItemT>* other,
+			TidList* new_tidList);
 	~IndexedTransactionsList();
 
 	int32_t getTransSupport(int32_t trans);
@@ -64,7 +68,6 @@ public:
 	void copyTo(TidList::ItemTidList* item_tidList,
 			IndexedTransactionsList<childItemT>* writer, TidList* new_tidList,
 	    		int32_t* renaming, int32_t max_candidate);
-
 };
 
 }

@@ -48,6 +48,8 @@ ExplorationStep::ExplorationStep(int32_t minimumSupport,
 			-1 /* no core item yet */
 			);
 
+	dataset->compress();
+
 	candidates = Helpers::unique_to_shared(counters->getExtensionsIterator());
 
 	failedFPTests.reset(new unordered_map<int32_t, int32_t>());
