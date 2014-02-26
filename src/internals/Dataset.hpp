@@ -34,8 +34,6 @@ public:
 	virtual ~Dataset();
 	virtual unique_ptr<TransactionsSubList> getTransactionsSubList(
 			int32_t item) = 0;
-	virtual unique_ptr<Iterator<int32_t> > getItemTidListIterator(
-			int32_t item) = 0;
 	virtual void countSubList(TidList::ItemTidList *item_tidlist,
 			int32_t &transactionsCount, int32_t &distinctTransactionsCount,
 			int32_t *supportCounts, int32_t *distinctTransactionsCounts,
@@ -44,6 +42,7 @@ public:
 			shp_array_int32 renaming, Counters *counters,
 			int32_t max_candidate) = 0;
 	virtual void compress() = 0;
+	virtual bool checkTidListsInclusion(int32_t extension, int32_t i) = 0;
 
 	template<class TransactionsListT, class TidListT>
 	static unique_ptr<Dataset> instanciateDataset(
@@ -102,11 +101,6 @@ public:
 				new TransactionsSubList(this, _tidList->getItemTidList(item)));
 	}
 
-	unique_ptr<Iterator<int32_t> > getItemTidListIterator(int32_t item)
-			override {
-		return _tidList->getItemTidList(item)->iterator();
-	}
-
 	unique_ptr<TidList::ItemTidList> getItemTidList(int32_t item) {
 		return _tidList->getItemTidList(item);
 	}
@@ -140,6 +134,10 @@ public:
 	void compress() override {
 		TransactionsListT *trn_list = new TransactionsListT(_transactions.get(), _tidList.get());
 		_transactions.reset(trn_list);
+	}
+
+	bool checkTidListsInclusion(int32_t extension, int32_t i) override {
+		return _tidList->checkTidListsInclusion(extension, i);
 	}
 };
 

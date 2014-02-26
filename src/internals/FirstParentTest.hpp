@@ -20,10 +20,6 @@ protected:
     		PLCM::getCurrentThread()->counters[
     		          PLCM::PLCMCounters::FirstParentTestRejections]++;
     }
-
-private:
-    bool isAincludedInB(Iterator<int32_t>& aIt,
-    					Iterator<int32_t>& bIt);
 };
 
 }

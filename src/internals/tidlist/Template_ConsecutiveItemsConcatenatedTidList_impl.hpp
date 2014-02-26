@@ -70,6 +70,22 @@ Template_ConsecutiveItemsConcatenatedTidList<T>::getItemTidList(
 			new Template_ItemTidList<T>(startPos, endPos));
 }
 
+/* check if tidlist of item_a is included in
+ * tidlist of item_b */
+template <class T>
+bool Template_ConsecutiveItemsConcatenatedTidList<T>::checkTidListsInclusion(
+		int32_t item_a, int32_t item_b)
+{
+	int32_t* info_a = _indexAndFreqs_fast + (item_a << 1);
+	int32_t* info_b = _indexAndFreqs_fast + (item_b << 1);
+	T* start_a = _array_fast + (*info_a);
+	T* end_a = start_a + (*(info_a+1));
+	T* start_b = _array_fast + (*info_b);
+	T* end_b = start_b + (*(info_b+1));
+
+	return std::includes(start_b, end_b, start_a, end_a);
+}
+
 template<class T>
 internals::tidlist::Template_ItemTidList<T>::Template_ItemTidList(
 		T* in_begin, T* in_end) : begin(in_begin), end(in_end) {

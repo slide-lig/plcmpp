@@ -31,6 +31,8 @@ public:
 
 
     unique_ptr<TidList::ItemTidList> getItemTidList(int32_t item) override;
+    bool checkTidListsInclusion(int32_t item_a, int32_t item_b);
+
     unique_ptr<TidList> clone() override;
 
 protected:
