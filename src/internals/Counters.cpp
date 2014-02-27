@@ -195,9 +195,6 @@ shp_array_int32 Counters::compressRenaming(
 	}
 
 	maxCandidate = greatestBelowMaxCandidate + 1;
-	fill(	new_renaming->begin() + supportCounts->size(),
-			new_renaming->end(),
-			-1);
 	maxFrequent = newItemID - 1;
 	compactedArrays = true;
 
