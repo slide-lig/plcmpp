@@ -394,6 +394,9 @@ void PLCMThread::start() {
 }
 
 void PLCMThread::lcm(shared_ptr<ExplorationStep> state) {
+#ifdef PRINT_STEPS
+	cout << state->id << endl;
+#endif
 	_PLCM_instance->collect(
 			state->counters->transactionsCount,
 			state->pattern.get());

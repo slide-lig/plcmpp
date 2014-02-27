@@ -12,6 +12,10 @@ using namespace std;
 
 using util::shp_vec_int32;
 
+#if defined(PRINT_STEPS) || defined(DEBUG_STEP)
+#define RECORD_STEP_ID
+#endif
+
 namespace internals {
 
 // forward declarations
@@ -51,6 +55,11 @@ public:
 	int32_t core_item;
 	unique_ptr<Dataset> dataset;
 	unique_ptr<Counters> counters;
+
+#ifdef RECORD_STEP_ID
+	uint id;
+	static uint next_id;
+#endif
 
 protected:
 	/**

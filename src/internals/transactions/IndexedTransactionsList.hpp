@@ -68,6 +68,10 @@ public:
 	void copyTo(TidList::ItemTidList* item_tidList,
 			IndexedTransactionsList<childItemT>* writer, TidList* new_tidList,
 	    		int32_t* renaming, int32_t max_candidate);
+
+	void updateTidList(TidList* new_tidList);
+
+	void print();
 };
 
 }

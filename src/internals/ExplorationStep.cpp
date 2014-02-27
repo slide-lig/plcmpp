@@ -17,6 +17,10 @@ using util::Helpers;
 
 namespace internals {
 
+#ifdef RECORD_STEP_ID
+uint ExplorationStep::next_id = 0;
+#endif
+
 bool ExplorationStep::verbose = false;
 bool ExplorationStep::ultraVerbose = false;
 
@@ -24,6 +28,9 @@ Selector *ExplorationStep::firstParentTestInstance = new FirstParentTest();
 
 ExplorationStep::ExplorationStep(int32_t minimumSupport,
 		string& path) : candidates(nullptr) {
+#ifdef RECORD_STEP_ID
+	id = 0;
+#endif
 	core_item = INT_MAX;
 	selector = nullptr;
 	/* the following FileReader will just be used in the constructors of
@@ -57,6 +64,11 @@ ExplorationStep::ExplorationStep(int32_t minimumSupport,
 
 ExplorationStep::ExplorationStep(ExplorationStep* parent,
 		int32_t extension, unique_ptr<Counters> candidateCounts) {
+
+#ifdef RECORD_STEP_ID
+	id = ++next_id;
+#endif
+
 	core_item = extension;
 	counters = move(candidateCounts); // get ownership
 	shp_array_int32 reverseRenaming = parent->counters->getReverseRenaming();
@@ -129,6 +141,7 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 					continue;
 				}
 			}
+
 			// instanciateDataset may choose to compress renaming - if
 			// not, at least it's set for now.
 			candidateCounts->reuseRenaming(counters->getReverseRenaming());

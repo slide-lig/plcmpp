@@ -3,6 +3,7 @@
 #include <internals/Counters.hpp>
 #include <util/SimpleDigest.h>
 #include <Config.hpp>
+#include <internals/ExplorationStep.hpp>
 
 #include <iostream>
 using namespace std;
@@ -264,10 +265,17 @@ void IndexedTransactionsList<itemT>::copyTo(
 
 	int32_t tid;
 	itemT *begin, *end, *it;
-	childItemT *write_index, *start_transaction, *end_prefix, *it_child;
+	childItemT *write_index, *end_prefix;
 	int32_t item, transId, weight;
 	transaction_boundaries_t* transaction_info;
 	typename PrefixDeduplication<childItemT>::prefix_set_t known_prefixes_info;
+
+#ifdef DEBUG_STEP
+	if (ExplorationStep::next_id == DEBUG_STEP)
+	{
+		cout << "Uncompressed: (max_candidate = " << max_candidate << ")" << endl;
+	}
+#endif
 
 	auto item_tidList_it = item_tidList->iterator();
 
@@ -283,11 +291,16 @@ void IndexedTransactionsList<itemT>::copyTo(
 		weight = _transactions_support[tid];
 
 		transId = writer->beginTransaction(weight, write_index);
-		start_transaction = write_index;
+
+#ifdef DEBUG_STEP
+		if (ExplorationStep::next_id == DEBUG_STEP)
+		{
+			cout << "[ ";
+		}
+#endif
 
 		if (renaming == nullptr)
 		{
-			item = *it;
 			write_index = std::copy(begin, end, write_index);
 		}
 		else
@@ -299,35 +312,72 @@ void IndexedTransactionsList<itemT>::copyTo(
 				if (item != -1)
 				{
 					*(write_index++) = item;
+#ifdef DEBUG_STEP
+					if (ExplorationStep::next_id == DEBUG_STEP)
+					{
+						cout << item << " ";
+					}
+#endif
 				}
 			}
 		}
 
+#ifdef DEBUG_STEP
+		if (ExplorationStep::next_id == DEBUG_STEP)
+		{
+			cout << "]" << endl;
+		}
+#endif
+
 		auto trans_desc = writer->endTransaction(write_index, max_candidate, end_prefix);
 
-		if (PrefixDeduplication<childItemT>::insertOrMerge(
+		PrefixDeduplication<childItemT>::insertOrMerge(
 				known_prefixes_info,
 				transId,
 				weight,
 				trans_desc,
 				end_prefix,
-				writer))
-		{	// insertion OK: prefix not met yet
-
-			/* The next passes of the algorithm will only use
-			 * the tidlists of items in the prefix */
-			for(	it_child = start_transaction;
-					it_child != end_prefix;
-					it_child++)
-			{
-				new_tidList->addTransaction(*it_child, transId);
-			}
-		}
+				writer);
 	}
+
+#ifdef DEBUG_STEP
+	if (ExplorationStep::next_id == DEBUG_STEP)
+	{
+		cout << endl;
+		cout << "Compressed: " << endl;
+		writer->print();
+		cout << endl;
+	}
+#endif
 
 	if (Config::AVOID_OVER_ALLOC)
 	{
 		writer->repack();
+	}
+
+	writer->updateTidList(new_tidList);
+}
+
+template<class itemT>
+void IndexedTransactionsList<itemT>::updateTidList(TidList* new_tidList)
+{
+	int32_t tid;
+	itemT *begin, *end, *it;
+	transaction_boundaries_t* transaction_info;
+
+	transaction_info = _transactions_boundaries;
+
+	for (tid = 0; tid < _num_transactions; ++tid)
+	{
+		begin = transaction_info->start_transaction;
+		end = transaction_info->end_transaction;
+
+		for(it = begin; it < end; ++it)
+		{
+			new_tidList->addTransaction(*it, tid);
+		}
+
+		++transaction_info;
 	}
 }
 
@@ -347,16 +397,15 @@ IndexedTransactionsList<itemT>::IndexedTransactionsList(
 	_writeIndex = _concatenated;
 
 	otherItemT *begin, *end;
-	itemT *end_prefix, *it_child, *write_index, *start_transaction;
+	itemT *end_prefix, *write_index;
 	int32_t transId, weight;
 	transaction_boundaries_t* transaction_info;
 	typename PrefixDeduplication<itemT>::prefix_set_t known_prefixes_info;
-	updatable_tidlist->resetTidLists();
+
+	transaction_info = other->_transactions_boundaries;
 
 	for (auto tid = 0; tid < other->_num_transactions; ++tid)
 	{
-		transaction_info = &other->_transactions_boundaries[tid];
-
 		begin = transaction_info->start_transaction;
 		end = transaction_info->end_transaction;
 
@@ -365,30 +414,20 @@ IndexedTransactionsList<itemT>::IndexedTransactionsList(
 		weight = other->_transactions_support[tid];
 
 		transId = this->beginTransaction(weight, write_index);
-		start_transaction = write_index;
 
 		write_index = std::copy(begin, end, write_index);
 
 		auto trans_desc = this->endTransaction(write_index, INT32_MAX, end_prefix);
 
-		if (PrefixDeduplication<itemT>::insertOrMerge(
+		PrefixDeduplication<itemT>::insertOrMerge(
 				known_prefixes_info,
 				transId,
 				weight,
 				trans_desc,
 				end_prefix,
-				this))
-		{	// insertion OK: prefix not met yet
+				this);
 
-			/* The next passes of the algorithm will only use
-			 * the tidlists of items in the prefix */
-			for(	it_child = start_transaction;
-					it_child != end_prefix;
-					it_child++)
-			{
-				updatable_tidlist->addTransaction(*it_child, transId);
-			}
-		}
+		++transaction_info;
 	}
 
 	cout << "Found " << (other->_num_transactions - _num_transactions) << "/" <<
@@ -398,6 +437,34 @@ IndexedTransactionsList<itemT>::IndexedTransactionsList(
 	if (Config::AVOID_OVER_ALLOC)
 	{
 		this->repack();
+	}
+
+	updatable_tidlist->resetTidLists();
+	updateTidList(updatable_tidlist);
+}
+
+template<class itemT>
+void IndexedTransactionsList<itemT>::print()
+{
+	int32_t tid;
+	itemT *begin, *end, *it;
+	transaction_boundaries_t* transaction_info;
+
+	transaction_info = _transactions_boundaries;
+
+	for (tid = 0; tid < _num_transactions; ++tid)
+	{
+		begin = transaction_info->start_transaction;
+		end = transaction_info->end_transaction;
+
+		cout << "[ ";
+		for(it = begin; it < end; ++it)
+		{
+			cout << (int)(*it) << " ";
+		}
+		cout << "]" << endl;
+
+		++transaction_info;
 	}
 }
 
