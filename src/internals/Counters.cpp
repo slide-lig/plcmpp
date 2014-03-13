@@ -160,43 +160,68 @@ shp_array_int32 Counters::compressRenaming(
 	auto new_renaming_size =
 			max(olderReverseRenaming->size(), supportCounts->size());
 	auto new_renaming = make_p_array_int32_no_init(new_renaming_size);
-	reverseRenaming = make_p_array_int32_no_init(nbFrequents);
-	auto opt_supportCounts = supportCounts->array;
 	auto opt_new_renaming = new_renaming->array;
-	auto opt_reverseRenaming = reverseRenaming->array;
-	auto opt_olderReverseRenaming = olderReverseRenaming->array;
-	auto opt_distinctTransactionsCounts = distinctTransactionsCounts->array;
 
-	// we will always have newItemID <= item
-	int newItemID = 0;
-	int greatestBelowMaxCandidate = -2;
-
-	int32_t item = 0;
-	auto end_supportCounts = supportCounts->end();
-	for (auto curr_supportCounts = supportCounts->begin();
-			curr_supportCounts < end_supportCounts;
-			++curr_supportCounts) {
-		if (*curr_supportCounts > 0) {
-			opt_new_renaming[item] = newItemID;
-			opt_reverseRenaming[newItemID] = opt_olderReverseRenaming[item];
-
-			opt_distinctTransactionsCounts[newItemID] = opt_distinctTransactionsCounts[item];
-			opt_supportCounts[newItemID] = *curr_supportCounts;
-
-			if (item < maxCandidate) {
-				greatestBelowMaxCandidate = newItemID;
+	if (new_renaming_size <= UINT8_MAX)
+	{	// no need to compress, just filter
+		int32_t item = 0;
+		auto end_supportCounts = supportCounts->end();
+		for (auto curr_supportCounts = supportCounts->begin();
+				curr_supportCounts < end_supportCounts;
+				++curr_supportCounts) {
+			if (*curr_supportCounts > 0) {
+				opt_new_renaming[item] = item;
 			}
-
-			newItemID++;
-		} else {
-			opt_new_renaming[item] = -1;
+			else {
+				opt_new_renaming[item] = -1;
+			}
+			++item;
 		}
-		item++;
-	}
+		reverseRenaming = make_shared<array_int32>(*olderReverseRenaming);
 
-	maxCandidate = greatestBelowMaxCandidate + 1;
-	maxFrequent = newItemID - 1;
-	compactedArrays = true;
+		maxFrequent = item - 1;
+		compactedArrays = false;
+	}
+	else
+	{
+		reverseRenaming = make_p_array_int32_no_init(nbFrequents);
+		auto opt_supportCounts = supportCounts->array;
+		auto opt_reverseRenaming = reverseRenaming->array;
+		auto opt_olderReverseRenaming = olderReverseRenaming->array;
+		auto opt_distinctTransactionsCounts = distinctTransactionsCounts->array;
+
+		// we will always have newItemID <= item
+		int newItemID = 0;
+		int greatestBelowMaxCandidate = -2;
+
+		int32_t item = 0;
+		auto end_supportCounts = supportCounts->end();
+		for (auto curr_supportCounts = supportCounts->begin();
+				curr_supportCounts < end_supportCounts;
+				++curr_supportCounts) {
+			if (*curr_supportCounts > 0) {
+				opt_new_renaming[item] = newItemID;
+				opt_reverseRenaming[newItemID] = opt_olderReverseRenaming[item];
+
+				opt_distinctTransactionsCounts[newItemID] = opt_distinctTransactionsCounts[item];
+				opt_supportCounts[newItemID] = *curr_supportCounts;
+
+				if (item < maxCandidate) {
+					greatestBelowMaxCandidate = newItemID;
+				}
+
+				newItemID++;
+			} else {
+				opt_new_renaming[item] = -1;
+			}
+			item++;
+		}
+
+		maxCandidate = greatestBelowMaxCandidate + 1;
+		maxFrequent = newItemID - 1;
+		compactedArrays = true;
+
+	}
 
 	renaming = new_renaming;
 
