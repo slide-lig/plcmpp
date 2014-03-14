@@ -157,13 +157,13 @@ void Counters::reuseRenaming(shp_array_int32 olderReverseRenaming) {
 shp_array_int32 Counters::compressRenaming(
 		shp_array_int32 olderReverseRenaming) {
 
-	auto new_renaming_size =
-			max(olderReverseRenaming->size(), supportCounts->size());
+	auto new_renaming_size = supportCounts->size();
 	auto new_renaming = make_p_array_int32_no_init(new_renaming_size);
 	auto opt_new_renaming = new_renaming->array;
 
 	if (new_renaming_size <= UINT8_MAX)
-	{	// no need to compress, just filter
+	{	// we consider there will be no added value to compress,
+		// we just mark the unfrequent items with the value -1.
 		int32_t item = 0;
 		auto end_supportCounts = supportCounts->end();
 		for (auto curr_supportCounts = supportCounts->begin();
@@ -177,7 +177,7 @@ shp_array_int32 Counters::compressRenaming(
 			}
 			++item;
 		}
-		reverseRenaming = make_shared<array_int32>(*olderReverseRenaming);
+		reverseRenaming = olderReverseRenaming;
 
 		maxFrequent = item - 1;
 		compactedArrays = false;
@@ -214,7 +214,7 @@ shp_array_int32 Counters::compressRenaming(
 			} else {
 				opt_new_renaming[item] = -1;
 			}
-			item++;
+			++item;
 		}
 
 		maxCandidate = greatestBelowMaxCandidate + 1;
