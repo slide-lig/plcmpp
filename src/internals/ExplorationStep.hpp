@@ -12,7 +12,7 @@ using namespace std;
 
 using util::shp_vec_int32;
 
-#if defined(PRINT_STEPS) || defined(DEBUG_STEP)
+#if defined(PRINT_STEPS) || defined(DEBUG_STEP) || defined(PRINT_DENSITY)
 #define RECORD_STEP_ID
 #endif
 

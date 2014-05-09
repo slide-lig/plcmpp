@@ -26,6 +26,15 @@ bool ExplorationStep::ultraVerbose = false;
 
 Selector *ExplorationStep::firstParentTestInstance = new FirstParentTest();
 
+
+#ifdef PRINT_DENSITY
+void print_density(ExplorationStep *step, int parent_id) {
+	Counters *c = step->counters.get();
+	cout << "density: " << step->id << " " << parent_id << " " << c->distinctTransactionLengthSum << " " <<
+			c->distinctTransactionsCount << " " << c->nbFrequents << endl;
+}
+#endif
+
 ExplorationStep::ExplorationStep(int32_t minimumSupport,
 		string& path) : candidates(nullptr) {
 #ifdef RECORD_STEP_ID
@@ -58,6 +67,10 @@ ExplorationStep::ExplorationStep(int32_t minimumSupport,
 	dataset->compress();
 
 	candidates = Helpers::unique_to_shared(counters->getExtensionsIterator());
+
+#ifdef PRINT_DENSITY
+	print_density(this, -1);
+#endif
 
 	failedFPTests.reset(new unordered_map<int32_t, int32_t>());
 }
@@ -107,6 +120,10 @@ ExplorationStep::ExplorationStep(ExplorationStep* parent,
 		// and intanciateDataset may choose to trigger some renaming in
 		// counters
 		candidates = Helpers::unique_to_shared(counters->getExtensionsIterator());
+
+#ifdef PRINT_DENSITY
+		print_density(this, parent->id);
+#endif
 	}
 }
 
