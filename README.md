@@ -1,6 +1,6 @@
 # pLCM++
 
-A fast C++ implementation implementation of the LCM (Linear Closed itemsets Miner) algorithm, as proposed by T.Uno & H.Arimura. It is multi-threaded, as proposed by Négrevergne et al., hence the name of its main class: PLCM.
+A fast C++ implementation of the LCM (Linear Closed itemsets Miner) algorithm, as proposed by T.Uno & H.Arimura. It is multi-threaded, as proposed by Négrevergne et al., hence the name of its main class: PLCM.
 
 The pLCM++ implementation started as a port of [jLCM](https://github.com/martinkirch/jlcm) to C++.
 jLCM is a parallel implementation of the LCM algorithm, in java, 
@@ -24,6 +24,7 @@ Simulation, 2010
 the performance of pLCM++ is usually similar to the one of [LCM 2.5](http://research.nii.ac.jp/~uno/code/lcm25.zip),
 the fastest mono-threaded implementation proposed by T. Uno. 
 
+Note: performance must be measured using option `-b` (benchmark mode), which disables online printing of patterns.
 
 ## Compiling and running pLCM++
 
