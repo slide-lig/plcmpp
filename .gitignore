@@ -1,2 +1,4 @@
 /Debug
 .depend
+*.o
+pLCM++
