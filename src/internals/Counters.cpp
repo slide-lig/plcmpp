@@ -90,14 +90,12 @@ Counters::Counters(int32_t minimumSupport,
 	maxFrequent = nbFrequents - 1;
 	maxCandidate = maxFrequent + 1;
 
-	supportCounts = make_p_array_int32_no_init(nbFrequents);
-	distinctTransactionsCounts = make_p_array_int32_no_init(nbFrequents);
+	supportCounts = make_p_array_int32(nbFrequents, 0);
 	reverseRenaming = make_p_array_int32_no_init(nbFrequents);
 	int remainingSupportsSum = 0;
 	auto opt_renaming = renaming->array;
 	auto opt_reverseRenaming = reverseRenaming->array;
 	auto opt_supportCounts = supportCounts->array;
-	auto opt_distinctTransactionsCounts = distinctTransactionsCounts->array;
 
 	int newItemID = 0;
 
@@ -112,7 +110,6 @@ Counters::Counters(int32_t minimumSupport,
 		opt_reverseRenaming[newItemID] = item;
 
 		opt_supportCounts[newItemID] = support;
-		opt_distinctTransactionsCounts[newItemID] = support;
 
 		remainingSupportsSum += support;
 
@@ -121,6 +118,11 @@ Counters::Counters(int32_t minimumSupport,
 
 	compactedArrays = true;
 	distinctTransactionLengthSum = remainingSupportsSum;
+
+	// for now support=1 for each transaction,
+	// so, for a given item, the number of distinct transactions is
+	// the number transactions, which is its support...
+	distinctTransactionsCounts = supportCounts;
 }
 
 Counters::Counters(const Counters& other) {
