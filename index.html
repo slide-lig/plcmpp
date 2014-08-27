@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="pLCM++ : A fast and multi-threaded implementation of the LCM algorithm.">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>pLCM++</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/slide-lig/plcmpp">View on GitHub</a>
+
+          <h1 id="project_title">pLCM++</h1>
+          <h2 id="project_tagline">A fast and multi-threaded implementation of the LCM algorithm.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/slide-lig/plcmpp/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/slide-lig/plcmpp/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>pLCM++ is a fast and multi-threaded C++ implementation of the LCM (Linear Closed itemsets Miner) algorithm (see [1], [2]).</p>
+
+<h2>
+<a name="performance" class="anchor" href="#performance"><span class="octicon octicon-link"></span></a>Performance</h2>
+
+<ul>
+<li>pLCM++ is usually around 3 times faster than <a href="https://github.com/martinkirch/jlcm">jLCM</a> on common datasets
+(main improvements over jLCM are described below)</li>
+<li>when limited to 1 thread (i.e. using the command line option <code>-t 1</code>),
+the performance of pLCM++ is usually similar to the one of <a href="http://research.nii.ac.jp/%7Euno/code/lcm25.zip">LCM 2.5</a>,
+the fastest mono-threaded implementation proposed by T. Uno. </li>
+</ul><p>Note: performance must be measured using option <code>-b</code> (benchmark mode), which disables online printing of patterns.</p>
+
+<h2>
+<a name="compiling-and-running-plcm" class="anchor" href="#compiling-and-running-plcm"><span class="octicon octicon-link"></span></a>Compiling and running pLCM++</h2>
+
+<p>Use <code>make</code> to build:</p>
+
+<pre><code>cd src
+make
+</code></pre>
+
+<p>Run <code>./pLCM++ --help</code> for usage details.</p>
+
+<p>This tool uses ASCII files as input: each line represents a transaction. You may find example input files in the <a href="http://fimi.ua.ac.be/data/">FIMI repository</a>.</p>
+
+<h2>
+<a name="history" class="anchor" href="#history"><span class="octicon octicon-link"></span></a>History</h2>
+
+<p>It started as a port of <a href="https://github.com/martinkirch/jlcm">jLCM</a> to C++.
+jLCM is a parallel implementation of the LCM algorithm, in java, 
+and was mostly written by Martin Kirchgessner and Vincent Leroy.</p>
+
+<h2>
+<a name="license-and-copyright-owners" class="anchor" href="#license-and-copyright-owners"><span class="octicon octicon-link"></span></a>License and copyright owners</h2>
+
+<p>This work is released under the Apache License 2.0 (see LICENSE).</p>
+
+<p>Copyright 2013 Etienne Dublé, Martin Kirchgessner, Vincent Leroy, Alexandre Termier, 
+CNRS and Université Joseph Fourier.</p>
+
+<h2>
+<a name="improvements-over-jlcm" class="anchor" href="#improvements-over-jlcm"><span class="octicon octicon-link"></span></a>Improvements over jLCM</h2>
+
+<p>After the initial porting phase, pLCM++ received a set of 
+optimizations. Main ones are:</p>
+
+<ul>
+<li>Use of minimal integer types in the processing part, not only
+for storage (as it was in <a href="https://github.com/martinkirch/jlcm">jLCM</a>). This allows more optimization
+opportunities for the compiler.</li>
+<li>Improved dataset reduction algorithm: pLCM++ uses hashes in 
+order to find which transactions can be merged together.</li>
+<li>Prefer range-based over java-style iterators (i.e. provide 
+start and end of a range instead of an abstract Iterator object
+with methods hasNext() and next()). This is obviously faster,
+but it required algorithmic changes in order to provide contiguous
+ranges when possible.</li>
+</ul><h2>
+<a name="reference-papers" class="anchor" href="#reference-papers"><span class="octicon octicon-link"></span></a>Reference papers</h2>
+
+<p>[1] "An efficient algorithm for enumerating closed patterns in transaction 
+databases" by T. Uno, T. Asai, Y. Uchida and H. Arimura, in Discovery Science, 
+2004</p>
+
+<p>[2] "Discovering closed frequent itemsets on multicore: Parallelizing computations 
+and optimizing memory accesses" by B. Negrevergne, A. Termier, J-F. Mehaut, 
+and T. Uno in International Conference on High Performance Computing &amp; 
+Simulation, 2010</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">pLCM++ maintained by <a href="https://github.com/slide-lig">slide-lig</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
