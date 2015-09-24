@@ -28,6 +28,7 @@ using util::Helpers;
 io::StdOutCollector::StdOutCollector() {
 	collected = 0;
 	collectedLength = 0;
+	collectedMaxLength = 0;
 }
 
 void io::StdOutCollector::collect(int32_t support, vector<int32_t>* pattern) {
@@ -37,6 +38,9 @@ void io::StdOutCollector::collect(int32_t support, vector<int32_t>* pattern) {
 
 	collected++;
 	collectedLength += pattern->size();
+	if(pattern->size() > collectedMaxLength){
+		collectedMaxLength = pattern->size();
+	}
 }
 
 int64_t io::StdOutCollector::close() {
@@ -49,4 +53,8 @@ int32_t io::StdOutCollector::getAveragePatternLength() {
 	} else {
 		return collectedLength / collected;
 	}
+}
+
+int32_t io::StdOutCollector::getMaxPatternLength() {
+	return collectedMaxLength;
 }

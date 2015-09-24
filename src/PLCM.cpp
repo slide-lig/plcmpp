@@ -1,4 +1,4 @@
-/*******************************************************************************
+getA/*******************************************************************************
  * Copyright (c) 2014 Etienne Dublé, Martin Kirchgessner, Vincent Leroy, Alexandre Termier, CNRS and Université Joseph Fourier.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -111,6 +111,10 @@ int64_t PLCM::closeCollector() {
 
 int32_t PLCM::getAveragePatternLength() {
 	return collector->getAveragePatternLength();
+}
+
+int32_t PLCM::getMaxPatternLength() {
+	return collector->getMaxPatternLength();
 }
 
 uint32_t PLCM::getDefaultNumThreads() {
@@ -236,6 +240,8 @@ void PLCM::standalone(unique_ptr<PLCM::Options> options) {
 	additionalcounters["loadingTime"] = loadingTime*1000 /* milliseconds */;
 	additionalcounters["avgPatternLength"] =
 			(uint64_t) miner.getAveragePatternLength();
+	additionalcounters["maxPatternLength"] =
+			(uint64_t) miner.getMaxPatternLength();
 
 	if (memoryWatch != nullptr) {
 		memoryWatch->stop();

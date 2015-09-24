@@ -34,12 +34,14 @@ class FileCollector : public PatternsCollector
 protected:
     int64_t collected;
     int64_t collectedLength;
+    int32_t collectedMaxLength;
     ofstream* stream;	// note: ofstream is internally buffered
 
 public:
     void collect(int32_t support, vector<int32_t>* pattern) override;
     int64_t close() override;
     int32_t getAveragePatternLength() override;
+    int32_t getMaxPatternLength() override;
     virtual int64_t getCollected();
     virtual int64_t getCollectedLength();
 

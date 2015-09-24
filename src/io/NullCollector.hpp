@@ -31,6 +31,7 @@ class NullCollector : public PatternsCollector
 protected:
     std::atomic<int32_t> collectedCount;
     std::atomic<int64_t> collectedLength;
+    std::atomic<int32_t> collectedMaxLength;
 
 public:
     NullCollector();
@@ -38,6 +39,7 @@ public:
     void collect(int32_t support, vector<int32_t>* pattern) override;
     int64_t close() override;
     int32_t getAveragePatternLength() override;
+    int32_t getMaxPatternLength() override;
 };
 
 }

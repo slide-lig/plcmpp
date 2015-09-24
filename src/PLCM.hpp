@@ -97,6 +97,7 @@ public:
     void display(ostream& stream, map<string, uint64_t>& additionalCounters);
     int64_t closeCollector();
     int32_t getAveragePatternLength();
+    int32_t getMaxPatternLength();
 
     static int main(int argc, char**argv);
     static void standalone(unique_ptr<PLCM::Options> options);

@@ -37,3 +37,7 @@ int64_t io::PatternSortCollector::close() {
 int32_t io::PatternSortCollector::getAveragePatternLength() {
 	return decorated->getAveragePatternLength();
 }
+
+int32_t io::PatternSortCollector::getMaxPatternLength() {
+	return decorated->getMaxPatternLength();
+}

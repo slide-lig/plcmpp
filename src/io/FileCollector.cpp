@@ -36,6 +36,7 @@ FileCollector::FileCollector(string& path) {
 
 	collected = 0;
 	collectedLength = 0;
+	collectedMaxLength = 0;
 	stream = new ofstream(path);
 }
 
@@ -60,6 +61,9 @@ void FileCollector::collect(int32_t support, vector<int32_t>* pattern) {
 	(*stream) << endl;
 	collected++;
 	collectedLength += pattern->size();
+	if(pattern->size() > collectedMaxLength){
+		collectedMaxLength = pattern->size();
+	}
 }
 
 int64_t FileCollector::close() {
@@ -84,4 +88,7 @@ int64_t FileCollector::getCollectedLength() {
 	return collectedLength;
 }
 
+int32_t FileCollector::getMaxPatternLength() {
+	return collectedMaxLength;
+}
 }
