@@ -53,7 +53,7 @@ void print_density(ExplorationStep *step, int parent_id) {
 }
 #endif
 
-ExplorationStep::ExplorationStep(int32_t minimumSupport, bool outputAllPatterns,
+ExplorationStep::ExplorationStep(int32_t minimumSupport,
 		string& path) : candidates(nullptr) {
 #ifdef RECORD_STEP_ID
 	id = 0;
