@@ -22,6 +22,7 @@
 #include <iostream>
 using namespace std;
 
+#include <internals/ExplorationStep.hpp>
 #include <internals/Counters.hpp>
 #include <internals/transactions/TransactionsList.hpp>
 #include <internals/Dataset.hpp>
