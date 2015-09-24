@@ -191,8 +191,6 @@ int PLCM::main(int argc, char** argv) {
 void PLCM::standalone(unique_ptr<PLCM::Options> options) {
 	unique_ptr<MemoryUsage::WatcherThread> memoryWatch = nullptr;
 
-	ExplorationStep::outputClosedPatternsOnly = options->output_all;
-
 	if (options->memory_usage) {
 		memoryWatch = unique_ptr<MemoryUsage::WatcherThread>(
 				new MemoryUsage::WatcherThread());
@@ -207,6 +205,15 @@ void PLCM::standalone(unique_ptr<PLCM::Options> options) {
 	else
 	{
 		ExplorationStep::verbose = options->verbose;
+	}
+
+	if (options->output_all)
+	{
+		ExplorationStep::outputClosedPatternsOnly = true;
+	}
+	else
+	{
+		ExplorationStep::outputClosedPatternsOnly = false;
 	}
 
 	double chrono = Helpers::precise_time();
