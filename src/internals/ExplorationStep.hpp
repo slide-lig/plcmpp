@@ -122,7 +122,7 @@ public:
 	 *            to an input file in ASCII format. Each line should be a
 	 *            transaction containing space-separated item IDs.
 	 */
-	ExplorationStep(int32_t minimumSupport, bool outputAllPatterns, string& path);
+	ExplorationStep(int32_t minimumSupport, string& path);
 
 protected:
 	/**
