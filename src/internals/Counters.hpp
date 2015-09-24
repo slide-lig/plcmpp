@@ -22,6 +22,7 @@
 #include <atomic>
 using namespace std;
 
+#include "internals/ExplorationStep.hpp"
 #include "internals/FrequentsIterator.hpp"
 #include "util/Iterator.hpp"
 #include "util/shortcuts.h"
