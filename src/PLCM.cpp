@@ -156,7 +156,7 @@ int PLCM::main(int argc, char** argv) {
 	TCLAP::SwitchArg ultra_verbose("V", "ultra-verbose",
 			"Enable ultra-verbose mode, which logs every pattern extension"
 			" (use with care: it may produce a LOT of output)", cmd);
-	TCLAP::SwitchArg output_closed_only("c", "closed patterns only", "Output only closed patterns", cmd,true);
+	TCLAP::SwitchArg output_closed_only("c", "closed patterns only", "Output only closed patterns", cmd);
 	TCLAP::UnlabeledValueArg<string> input_path("INPUT_PATH",
 			"The path of the file to mine into.", true, "None", "in_file", cmd);
 	TCLAP::UnlabeledValueArg<uint32_t> minsup("MINSUP",
@@ -207,14 +207,14 @@ void PLCM::standalone(unique_ptr<PLCM::Options> options) {
 		ExplorationStep::verbose = options->verbose;
 	}
 
-	/*if (options->output_all)
+	if (options->output_all)
 	{
 		ExplorationStep::outputClosedPatternsOnly = true;
 	}
 	else
 	{
 		ExplorationStep::outputClosedPatternsOnly = false;
-	}*/
+	}
 
 	double chrono = Helpers::precise_time();
 	shared_ptr<ExplorationStep> initState = make_shared<ExplorationStep>(

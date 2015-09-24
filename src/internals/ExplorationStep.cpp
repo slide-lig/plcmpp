@@ -40,7 +40,7 @@ uint ExplorationStep::next_id = 0;
 
 bool ExplorationStep::verbose = false;
 bool ExplorationStep::ultraVerbose = false;
-bool ExplorationStep::outputClosedPatternsOnly = true;
+bool ExplorationStep::outputClosedPatternsOnly = false;
 
 Selector *ExplorationStep::firstParentTestInstance = new FirstParentTest();
 
