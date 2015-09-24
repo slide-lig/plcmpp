@@ -40,8 +40,8 @@ uint ExplorationStep::next_id = 0;
 
 bool ExplorationStep::verbose = false;
 bool ExplorationStep::ultraVerbose = false;
+bool ExplorationStep::outputClosedPatternsOnly = false;
 
-//TODO only if mining closed patterns, otherwise nullptr
 Selector *ExplorationStep::firstParentTestInstance = new FirstParentTest();
 
 
