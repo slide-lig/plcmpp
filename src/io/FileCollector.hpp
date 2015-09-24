@@ -34,7 +34,7 @@ class FileCollector : public PatternsCollector
 protected:
     int64_t collected;
     int64_t collectedLength;
-    int32_t collectedMaxLength;
+    vector<int32_t>::size_type collectedMaxLength;
     ofstream* stream;	// note: ofstream is internally buffered
 
 public:

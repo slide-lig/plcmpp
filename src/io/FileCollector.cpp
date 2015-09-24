@@ -88,7 +88,7 @@ int64_t FileCollector::getCollectedLength() {
 	return collectedLength;
 }
 
-int32_t FileCollector::getMaxPatternLength() {
+vector<int32_t>::size_type FileCollector::getMaxPatternLength() {
 	return collectedMaxLength;
 }
 }
