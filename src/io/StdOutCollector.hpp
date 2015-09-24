@@ -30,7 +30,7 @@ class StdOutCollector
 protected:
     int64_t collected;
     int64_t collectedLength;
-    int32_t collectedMaxLength;
+    size_type collectedMaxLength;
 
 public:
     StdOutCollector();
