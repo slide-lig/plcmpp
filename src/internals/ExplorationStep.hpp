@@ -60,6 +60,7 @@ private:
 public:
 	static bool verbose;
 	static bool ultraVerbose;
+	static bool outputClosedPatternsOnly;
 
 	/**
 	 * closure of parent's pattern UNION extension
@@ -121,7 +122,7 @@ public:
 	 *            to an input file in ASCII format. Each line should be a
 	 *            transaction containing space-separated item IDs.
 	 */
-	ExplorationStep(int32_t minimumSupport, string& path);
+	ExplorationStep(int32_t minimumSupport, bool outputAllPatterns, string& path);
 
 protected:
 	/**

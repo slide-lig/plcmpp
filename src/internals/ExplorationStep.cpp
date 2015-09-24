@@ -41,6 +41,7 @@ uint ExplorationStep::next_id = 0;
 bool ExplorationStep::verbose = false;
 bool ExplorationStep::ultraVerbose = false;
 
+//TODO only if mining closed patterns, otherwise nullptr
 Selector *ExplorationStep::firstParentTestInstance = new FirstParentTest();
 
 
@@ -52,7 +53,7 @@ void print_density(ExplorationStep *step, int parent_id) {
 }
 #endif
 
-ExplorationStep::ExplorationStep(int32_t minimumSupport,
+ExplorationStep::ExplorationStep(int32_t minimumSupport, bool outputAllPatterns,
 		string& path) : candidates(nullptr) {
 #ifdef RECORD_STEP_ID
 	id = 0;
@@ -129,7 +130,11 @@ ExplorationStep::ExplorationStep(ExplorationStep* parent,
 		failedFPTests.reset(
 				new unordered_map<int32_t, int32_t>());
 
-		selector = ExplorationStep::firstParentTestInstance;
+		if(ExplorationStep::outputClosedPatternsOnly){
+			selector = ExplorationStep::firstParentTestInstance;
+		}else{
+			selector = nullptr;
+		}
 
 		// indeed, instantiateDataset is influenced by longTransactionsMode
 		dataset = instanciateDataset(parent, extension);

@@ -78,7 +78,7 @@ Counters::Counters(int32_t minimumSupport,
 		item = iterator->first;
 		support = iterator->second;
 
-		if (support == transactionsCount) {
+		if (!ExplorationStep::outputClosedPatternsOnly && support == transactionsCount) {
 			new_closure->push_back(item);
 		} else if (support >= minimumSupport) {
 			renamingHeap.emplace(item, support);

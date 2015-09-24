@@ -156,6 +156,7 @@ int PLCM::main(int argc, char** argv) {
 	TCLAP::SwitchArg ultra_verbose("V", "ultra-verbose",
 			"Enable ultra-verbose mode, which logs every pattern extension"
 			" (use with care: it may produce a LOT of output)", cmd);
+	TCLAP::SwitchArg output_closed_only("c", "closed patterns only", "Output only closed patterns", cmd,true);
 	TCLAP::UnlabeledValueArg<string> input_path("INPUT_PATH",
 			"The path of the file to mine into.", true, "None", "in_file", cmd);
 	TCLAP::UnlabeledValueArg<uint32_t> minsup("MINSUP",
@@ -176,7 +177,8 @@ int PLCM::main(int argc, char** argv) {
 			ultra_verbose.getValue(),
 			input_path.getValue(),
 			minsup.getValue(),
-			output_path.getValue()
+			output_path.getValue(),
+			output_closed_only.getValue()
 	});
 
 	// run the main procedure
@@ -188,6 +190,8 @@ int PLCM::main(int argc, char** argv) {
 
 void PLCM::standalone(unique_ptr<PLCM::Options> options) {
 	unique_ptr<MemoryUsage::WatcherThread> memoryWatch = nullptr;
+
+	ExplorationStep::outputClosedPatternsOnly = options->output_all;
 
 	if (options->memory_usage) {
 		memoryWatch = unique_ptr<MemoryUsage::WatcherThread>(

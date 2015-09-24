@@ -76,6 +76,7 @@ protected:
 		string input_path;
 		uint32_t minsup;
 		string output_path;
+		bool output_all;
 	};
 
 	typedef map<thread::id, unique_ptr<PLCMThread> > 	thread_map;
