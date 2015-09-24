@@ -75,11 +75,6 @@ ExplorationStep::ExplorationStep(int32_t minimumSupport,
 
 	pattern = counters->getClosure();
 
-	//TODO REMOVE
-	if(counters->getClosure()->size() != 0 ){
-		cerr << "closure not empty1" << endl;
-	}
-
 	dataset = DatasetFactory::initFirstDataset(
 			savedTransactions.get(),
 			counters->getRenaming(),
@@ -178,9 +173,6 @@ unique_ptr<ExplorationStep> ExplorationStep::next() {
 			auto closure = candidateCounts->getClosure().get();
 			if (closure->size() > 0)
 			{
-				//TODO REMOVE
-				cerr << "closure not empty2" << endl;
-
 				int32_t greatest = *std::max_element(closure->begin(), closure->end());
 
 				if (greatest > candidate) {
