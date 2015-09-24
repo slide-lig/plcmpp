@@ -44,6 +44,6 @@ int32_t io::NullCollector::getAveragePatternLength() {
 	}
 }
 
-size_vector<int32_t>::size_typetype io::NullCollector::getMaxPatternLength() {
+vector<int32_t>::size_type io::NullCollector::getMaxPatternLength() {
 	return collectedMaxLength.load();
 }
