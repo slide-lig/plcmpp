@@ -271,7 +271,7 @@ Counters::Counters(
 		if (ref_supportCount < minimumSupport) {
 			ref_supportCount = 0;
 			(*it_distinctTransactionsCounts) = 0;
-		} else if (ref_supportCount == transactionsCount) {
+		} else if (ExplorationStep::outputClosedPatternsOnly && ref_supportCount == transactionsCount) {
 			new_closure->push_back(i);
 			ref_supportCount = 0;
 			(*it_distinctTransactionsCounts) = 0;
