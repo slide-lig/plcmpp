@@ -55,6 +55,6 @@ int32_t io::StdOutCollector::getAveragePatternLength() {
 	}
 }
 
-size_type io::StdOutCollector::getMaxPatternLength() {
+vector<int32_t>::size_type io::StdOutCollector::getMaxPatternLength() {
 	return collectedMaxLength;
 }

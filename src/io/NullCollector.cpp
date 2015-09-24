@@ -27,7 +27,7 @@ io::NullCollector::NullCollector() {
 void io::NullCollector::collect(int32_t support, vector<int32_t>* pattern) {
 	collectedCount += 1;
 	collectedLength += pattern->size();
-	size_type currentMax = collectedMaxLength.load();
+	vector<int32_t>::size_type currentMax = collectedMaxLength.load();
 	while(pattern->size() > currentMax && collectedMaxLength.compare_exchange_strong(currentMax, pattern->size())){
 	}
 }
@@ -44,6 +44,6 @@ int32_t io::NullCollector::getAveragePatternLength() {
 	}
 }
 
-size_type io::NullCollector::getMaxPatternLength() {
+size_vector<int32_t>::size_typetype io::NullCollector::getMaxPatternLength() {
 	return collectedMaxLength.load();
 }

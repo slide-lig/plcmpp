@@ -30,14 +30,14 @@ class StdOutCollector
 protected:
     int64_t collected;
     int64_t collectedLength;
-    size_type collectedMaxLength;
+    vector<int32_t>::size_type collectedMaxLength;
 
 public:
     StdOutCollector();
     void collect(int32_t support, vector<int32_t>* pattern) override;
     int64_t close() override;
     int32_t getAveragePatternLength() override;
-    int32_t getMaxPatternLength() override;
+    vector<int32_t>::size_type getMaxPatternLength() override;
 
 };
 

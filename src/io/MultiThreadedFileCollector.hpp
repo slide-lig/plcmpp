@@ -46,7 +46,7 @@ public:
     void collect(int32_t support, vector<int32_t>* pattern) override;
     int64_t close() override;
     int32_t getAveragePatternLength() override;
-    size_type getMaxPatternLength() override;
+    vector<int32_t>::size_type getMaxPatternLength() override;
 
 	/**
 	 * @param prefix

@@ -85,8 +85,8 @@ int32_t MultiThreadedFileCollector::getAveragePatternLength() {
 	return (int) (totalLen / nbPatterns);
 }
 
-size_type MultiThreadedFileCollector::getMaxPatternLength() {
-	size_type max = 0;
+vector<int32_t>::size_type MultiThreadedFileCollector::getMaxPatternLength() {
+	vector<int32_t>::size_type max = 0;
 
 	for (pair<const std::thread::id, io::FileCollector*> pair : (*collectors)) {
 		if(pair.second->getMaxPatternLength() > max){

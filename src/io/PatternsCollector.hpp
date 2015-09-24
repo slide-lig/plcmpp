@@ -31,7 +31,7 @@ public:
     virtual void collect(int32_t support, vector<int32_t>* pattern) = 0;
     virtual int64_t close() = 0;
     virtual int32_t getAveragePatternLength() = 0;
-    virtual size_type getMaxPatternLength() = 0;
+    virtual vector<int32_t>::size_type getMaxPatternLength() = 0;
 };
 
 }
