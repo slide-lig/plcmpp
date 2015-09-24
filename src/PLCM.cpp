@@ -113,7 +113,7 @@ int32_t PLCM::getAveragePatternLength() {
 	return collector->getAveragePatternLength();
 }
 
-int32_t PLCM::getMaxPatternLength() {
+vector<int32_t>::size_type PLCM::getMaxPatternLength() {
 	return collector->getMaxPatternLength();
 }
 
@@ -242,6 +242,13 @@ void PLCM::standalone(unique_ptr<PLCM::Options> options) {
 			(uint64_t) miner.getAveragePatternLength();
 	additionalcounters["maxPatternLength"] =
 			(uint64_t) miner.getMaxPatternLength();
+	additionalcounters["nbFrequentItems"] =
+			(uint64_t) initState->counters->nbFrequents;
+	additionalcounters["nbDistinctTransactions"] =
+			(uint64_t) initState->counters->distinctTransactionsCount;
+	additionalcounters["nbTransactions"] =
+			(uint64_t) initState->counters->transactionsCount;
+
 
 	if (memoryWatch != nullptr) {
 		memoryWatch->stop();
