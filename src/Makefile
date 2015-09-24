@@ -20,9 +20,9 @@
 # Set DEBUG to 0 for better optimization
 DEBUG=0
 STATIC=0
-NUMA=1
+NUMA=0
 # TCMALLOC=[NONE|STANDARD|NUMA_AWARE]
-TCMALLOC=STANDARD
+TCMALLOC=NONE
 
 GCC=g++ -Wall -std=gnu++11 -pthread -march=native
 CXX=$(GCC)
