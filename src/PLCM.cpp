@@ -217,6 +217,7 @@ void PLCM::standalone(unique_ptr<PLCM::Options> options) {
 	{
 		ExplorationStep::outputClosedPatternsOnly = false;
 	}
+	cerr << "Output All " << ExplorationStep::outputClosedPatternsOnly << endl;
 
 	double chrono = Helpers::precise_time();
 	shared_ptr<ExplorationStep> initState = make_shared<ExplorationStep>(
