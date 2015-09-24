@@ -40,7 +40,7 @@ uint ExplorationStep::next_id = 0;
 
 bool ExplorationStep::verbose = false;
 bool ExplorationStep::ultraVerbose = false;
-bool ExplorationStep::outputClosedPatternsOnly = false;
+bool ExplorationStep::outputClosedPatternsOnly = true;
 
 Selector *ExplorationStep::firstParentTestInstance = new FirstParentTest();
 
@@ -130,7 +130,7 @@ ExplorationStep::ExplorationStep(ExplorationStep* parent,
 		failedFPTests.reset(
 				new unordered_map<int32_t, int32_t>());
 
-		if(ExplorationStep::outputClosedPatternsOnly){
+		if(outputClosedPatternsOnly){
 			selector = ExplorationStep::firstParentTestInstance;
 		}else{
 			selector = nullptr;
