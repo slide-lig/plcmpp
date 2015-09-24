@@ -100,6 +100,8 @@ Counters::Counters(int32_t minimumSupport,
 
 	int newItemID = 0;
 
+	cerr << "nb frequent items in dataset: " << renamingHeap.size() << endl;
+
 	while (!renamingHeap.empty()) {
 		const ItemAndSupport &entry = renamingHeap.top();
 		item = entry.item();
